@@ -1,5 +1,22 @@
 # CooPad v5.1 - Release Notes
 
+## 🔧 v1.0.1 - Build System Fix (February 2026)
+
+### Windows Build Compatibility
+- **Fixed**: Windows build now supports Python 3.12 and newer
+- **Changed**: Migrated from `pygame` to `pygame-ce` (Community Edition)
+  - pygame 2.6.1 fails on Python 3.12+ due to missing distutils module
+  - pygame-ce is actively maintained and supports Python 3.12+
+- **Improved**: Build scripts now validate they're run from repository root
+- **Updated**: Documentation with Python 3.12+ requirements
+
+**Breaking Change**: Users with Python 3.12+ must use pygame-ce instead of pygame
+- `requirements.txt` now specifies `pygame-ce`
+- Build scripts automatically install pygame-ce
+- pygame-ce is a drop-in replacement with no code changes needed
+
+---
+
 ## 🎉 Major Release: Ready for Public Open Source Distribution
 
 CooPad v5.1 represents a major milestone with comprehensive improvements for public release as an open-source project. This release focuses on user experience, security, and ease of deployment.

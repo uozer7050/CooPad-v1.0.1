@@ -18,7 +18,7 @@ if [ -z "${VIRTUAL_ENV:-}" ]; then
 fi
 
 echo "Installing build deps and runtime dependencies..."
-pip install --upgrade pyinstaller Pillow pygame evdev >/dev/null
+pip install --upgrade pyinstaller Pillow pygame-ce evdev >/dev/null
 
 echo "Running PyInstaller..."
 pyinstaller --noconfirm --onefile \
