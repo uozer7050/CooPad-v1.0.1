@@ -58,42 +58,9 @@ logs/
 
 # Packaging output
 package/
-package.deb
+*.deb
 
 # Misc
 .python-version
 .env
 env.local
-
-.venv/
-__pycache__/
-*.pyc
-dist/
-build/
-*.egg-info/
-
-# Editor/IDE
-.vscode/
-.idea/
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Test / coverage
-.pytest_cache/
-.coverage
-.coverage.*
-htmlcov/
-
-# Logs and runtime files
-*.log
-logs/
-*.sqlite3
-*.db
-
-# Caches and tooling
-.mypy_cache/
-.ropeproject/
-.cache/
-.pytest_cache/
