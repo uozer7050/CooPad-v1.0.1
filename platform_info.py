@@ -42,8 +42,6 @@ class PlatformInfo:
             except ImportError:
                 # Try to auto-install evdev on Linux
                 try:
-                    import subprocess
-                    import sys
                     # Silently attempt pip install
                     subprocess.check_call(
                         [sys.executable, '-m', 'pip', 'install', '--user', '-q', 'evdev'],
@@ -54,7 +52,7 @@ class PlatformInfo:
                     # Try importing again
                     import evdev
                     self.evdev_available = True
-                except:
+                except Exception:
                     # Auto-install failed, evdev remains unavailable
                     self.evdev_available = False
         

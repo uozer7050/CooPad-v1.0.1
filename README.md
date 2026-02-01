@@ -166,8 +166,6 @@ Both Host and Client tabs show real-time telemetry:
 
 ### Build Commands
 
-### Build Commands
-
 **Windows executable:**
 ```bash
 scripts\build_windows.bat 1.0.0
