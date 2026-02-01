@@ -61,6 +61,18 @@ class App(tk.Tk):
             pass
 
         self._mono_font = ("Consolas", 10)
+        
+        # Color palette for consistent styling
+        self._palette = {
+            'bg': '#0d0f10',
+            'frame': '#111214',
+            'panel': '#151617',
+            'text_bg': '#0b0b0b',
+            'text_fg': '#e6e6e6',
+            'entry_bg': '#1a1c1d',
+            'button_bg': '#2a7bd6',
+            'accent': '#2a7bd6'
+        }
 
         # controller (backend)
         self._gp = GpController(status_cb=self._append_status, telemetry_cb=self._set_telemetry)
@@ -212,7 +224,7 @@ class App(tk.Tk):
             notice_fg = '#ef4444'
         
         notice = tk.Label(right, text=notice_text, wraplength=760, justify='left',
-                         fg=notice_fg, bg='#111214', font=(None, 9))
+                         fg=notice_fg, bg=self._palette['frame'], font=(None, 9))
         notice.pack(anchor='nw', padx=12, pady=(0,8))
 
         # custom tab buttons
@@ -287,17 +299,8 @@ class App(tk.Tk):
     def _apply_tab_styles(self):
         # make header contrast and set initial button styles
         try:
-            # dark palette
-            pal = {
-                'bg': '#0d0f10',
-                'frame': '#111214',
-                'panel': '#151617',
-                'text_bg': '#0b0b0b',
-                'text_fg': '#e6e6e6',
-                'entry_bg': '#1a1c1d',
-                'button_bg': '#2a7bd6',
-                'accent': '#2a7bd6'
-            }
+            # Use instance palette
+            pal = self._palette
             self.configure(bg=pal['bg'])
             try:
                 self.style.configure('TFrame', background=pal['frame'])
