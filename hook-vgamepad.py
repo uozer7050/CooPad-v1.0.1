@@ -4,7 +4,7 @@ PyInstaller hook for vgamepad package.
 This hook ensures that the ViGEmClient DLL files are properly included
 in the PyInstaller bundle when building on Windows.
 """
-from PyInstaller.utils.hooks import collect_data_files, is_module_satisfies
+from PyInstaller.utils.hooks import collect_data_files
 
 # Collect all data files from vgamepad package
 # This includes the DLL files in vgamepad/win/vigem/client/

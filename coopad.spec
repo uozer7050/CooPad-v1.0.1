@@ -96,5 +96,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    # Icon path is relative to where pyinstaller is run (project root)
+    # The build scripts ensure this is run from the correct directory
     icon='img/src_CooPad.ico' if os.path.exists('img/src_CooPad.ico') else None,
 )
