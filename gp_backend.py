@@ -52,19 +52,24 @@ class DummyClient(BaseRunner):
 
 
 def _try_import_real():
+    """Try to import real host/client implementations with detailed error reporting."""
     try:
         from gp.core.host import GamepadHost  # type: ignore
         from gp.core.client import GamepadClient  # type: ignore
-        return GamepadHost, GamepadClient
-    except Exception:
-        return None, None
+        return GamepadHost, GamepadClient, None
+    except ImportError as e:
+        error_msg = f"Could not import gp.core modules: {str(e)}"
+        return None, None, error_msg
+    except Exception as e:
+        error_msg = f"Unexpected error loading modules: {str(e)}"
+        return None, None, error_msg
 
 
 class GpController:
     def __init__(self, status_cb: Callable[[str], None], telemetry_cb: Callable[[str], None]):
         self.status_cb = status_cb
         self.telemetry_cb = telemetry_cb
-        HostCls, ClientCls = _try_import_real()
+        HostCls, ClientCls, error = _try_import_real()
         self._host: BaseRunner
         self._client: BaseRunner
         if HostCls is not None and ClientCls is not None:
@@ -73,31 +78,43 @@ class GpController:
                 def _run(inner_self):
                     try:
                         h = HostCls()
-                        inner_self.status_cb("Host: real implementation started")
+                        inner_self.status_cb("✓ Host initialized successfully")
                         h.start()
                         while not inner_self._stop_event.is_set():
                             time.sleep(0.1)
                         h.stop()
+                    except PermissionError as e:
+                        inner_self.status_cb(f"✗ Permission denied: {e}")
+                        inner_self.status_cb("→ Solution: Run ./scripts/setup_uinput.sh or use sudo")
+                    except OSError as e:
+                        inner_self.status_cb(f"✗ System error: {e}")
+                        inner_self.status_cb("→ Check if virtual gamepad driver is installed")
                     except Exception as e:
-                        inner_self.status_cb(f"Host error: {e}")
+                        inner_self.status_cb(f"✗ Host error: {e}")
 
             class RealClient(BaseRunner):
                 def _run(inner_self):
                     try:
                         c = ClientCls()
-                        inner_self.status_cb("Client: real implementation started")
+                        inner_self.status_cb("✓ Client initialized successfully")
                         c.start()
                         while not inner_self._stop_event.is_set():
                             time.sleep(0.1)
                         c.stop()
+                    except OSError as e:
+                        inner_self.status_cb(f"✗ Network error: {e}")
+                        inner_self.status_cb("→ Check firewall and network connectivity")
                     except Exception as e:
-                        inner_self.status_cb(f"Client error: {e}")
+                        inner_self.status_cb(f"✗ Client error: {e}")
 
             # wrap callbacks to prefix messages with source
             self._host = RealHost(lambda t: status_cb(f"HOST|{t}"), lambda t: telemetry_cb(f"HOST|{t}"))
             self._client = RealClient(lambda t: status_cb(f"CLIENT|{t}"), lambda t: telemetry_cb(f"CLIENT|{t}"))
         else:
-            status_cb("gp/ backend not found — using dummy runners")
+            if error:
+                status_cb(f"⚠ {error}")
+            status_cb("Using demo mode - Real gamepad functionality not available")
+            status_cb("→ Check platform_help for setup instructions")
             self._host = DummyHost(lambda t: status_cb(f"HOST|{t}"), lambda t: telemetry_cb(f"HOST|{t}"))
             self._client = DummyClient(lambda t: status_cb(f"CLIENT|{t}"), lambda t: telemetry_cb(f"CLIENT|{t}"))
 
