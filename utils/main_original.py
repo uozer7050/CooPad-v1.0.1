@@ -2,6 +2,10 @@ import os
 import sys
 import threading
 import time
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 try:
     import tkinter as tk
     from tkinter import ttk

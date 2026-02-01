@@ -4,6 +4,8 @@ Demonstration of improved user experience features
 Shows platform detection and user-friendly error messages
 """
 import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from platform_info import get_platform_info
 
 
