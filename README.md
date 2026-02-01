@@ -1,16 +1,19 @@
 # CooPad — Remote Gamepad over Network
 
 **Cross-platform remote gamepad application for gaming over network**
+<img width="1280" height="832" alt="unwatermarked_Gemini_Generated_Image_p3ggtup3ggtup3gg" src="https://github.com/user-attachments/assets/2111fd40-c0b2-4d52-acec-e788db6b5c83" />
+
 
 CooPad allows you to use a physical gamepad connected to one computer (Client) to control games on another computer (Host) over a local network or VPN. Perfect for couch gaming, game streaming, or playing with friends remotely.
 
-<img width="1097" height="723" alt="image" src="https://github.com/user-attachments/assets/55d0ac55-d2bd-42d8-9448-b0782c81c116" />
+<img width="1093" height="725" alt="image" src="https://github.com/user-attachments/assets/aada6173-6870-421e-941d-cd35b2af34f9" />
+
 
 ## 🎮 Features
 
 - **Cross-Platform Support**: Works on Windows and Linux (all combinations supported)
 - **Controller Profiles**: Built-in support for PS4, PS5, Xbox 360, Nintendo Switch (Joy-Con and Pro Controller), and generic controllers
-- **Low Latency**: 1-10ms on local networks, optimized for real-time gaming
+- **Low Latency**: 1-20ms on local networks, optimized for real-time gaming
 - **Configurable Update Rates**: Choose between 30Hz, 60Hz, or 90Hz for optimal performance
 - **Real-Time Telemetry**: Monitor latency, jitter, and packet rates
 - **Smart Platform Detection**: Automatically detects your OS and available drivers
@@ -90,6 +93,8 @@ python3 main.py
      - Nintendo Switch Joy-Con
      - Nintendo Switch Pro Controller
      - Generic (for other controllers)
+   <img width="400" height="407" alt="image" src="https://github.com/user-attachments/assets/01f86827-a8f5-4fe8-887a-ad81e4b2da94" />
+
    - Choose update rate based on your network:
      - 30 Hz: Lower bandwidth, suitable for slower networks
      - 60 Hz: Recommended for most users
