@@ -12,7 +12,6 @@ except ImportError:
 
 from PIL import Image, ImageOps, ImageTk
 from gp_backend import GpController
-from platform_info import get_platform_info
 import socket
 from queue import Queue
 import logging
@@ -24,9 +23,6 @@ input_queue = Queue()
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 logger = logging.getLogger(__name__)
-
-# Get platform info on startup
-platform_info = get_platform_info()
 
 
 class App(tk.Tk):
@@ -61,18 +57,6 @@ class App(tk.Tk):
             pass
 
         self._mono_font = ("Consolas", 10)
-        
-        # Color palette for consistent styling
-        self._palette = {
-            'bg': '#0d0f10',
-            'frame': '#111214',
-            'panel': '#151617',
-            'text_bg': '#0b0b0b',
-            'text_fg': '#e6e6e6',
-            'entry_bg': '#1a1c1d',
-            'button_bg': '#2a7bd6',
-            'accent': '#2a7bd6'
-        }
 
         # controller (backend)
         self._gp = GpController(status_cb=self._append_status, telemetry_cb=self._set_telemetry)
@@ -104,45 +88,6 @@ class App(tk.Tk):
             ttk.Label(left, text='CooPad', font=(None, 18, 'bold')).pack(pady=18)
 
         ttk.Label(left, text='Remote Gamepad').pack(pady=(0,12))
-        
-        # Platform Status Panel
-        status_frame = tk.Frame(left, bg='#1a1d1f', relief='solid', borderwidth=1)
-        status_frame.pack(fill='x', padx=12, pady=(0,12))
-        
-        # Platform name
-        platform_name = platform_info.get_platform_name()
-        ttk.Label(status_frame, text=f'Platform: {platform_name}', 
-                  font=(None, 9, 'bold')).pack(anchor='w', padx=8, pady=(8,4))
-        
-        # Host status indicator
-        host_status = platform_info.get_host_status()
-        host_indicator = tk.Frame(status_frame, bg='#1a1d1f')
-        host_indicator.pack(fill='x', padx=8, pady=2)
-        
-        self.host_status_icon = tk.Label(host_indicator, text=host_status['icon'], 
-                                         font=(None, 12), fg=host_status['color'],
-                                         bg='#1a1d1f', width=2)
-        self.host_status_icon.pack(side='left')
-        
-        self.host_status_label = tk.Label(host_indicator, text=host_status['message'],
-                                          font=(None, 8), fg='#e5e7eb',
-                                          bg='#1a1d1f', anchor='w', justify='left')
-        self.host_status_label.pack(side='left', fill='x', expand=True)
-        
-        # Client status indicator
-        client_status = platform_info.get_client_status()
-        client_indicator = tk.Frame(status_frame, bg='#1a1d1f')
-        client_indicator.pack(fill='x', padx=8, pady=(2,8))
-        
-        self.client_status_icon = tk.Label(client_indicator, text=client_status['icon'],
-                                           font=(None, 12), fg=client_status['color'],
-                                           bg='#1a1d1f', width=2)
-        self.client_status_icon.pack(side='left')
-        
-        self.client_status_label = tk.Label(client_indicator, text=client_status['message'],
-                                            font=(None, 8), fg='#e5e7eb',
-                                            bg='#1a1d1f', anchor='w', justify='left')
-        self.client_status_label.pack(side='left', fill='x', expand=True)
 
         # left forms: separate frames for Host and Client controls (show one at a time)
         self.host_controls = ttk.Frame(left)
@@ -174,8 +119,7 @@ class App(tk.Tk):
         self.client_state_label = ttk.Label(cc, text='Client: stopped', foreground='#b22222')
         self.client_state_label.pack(anchor='w', padx=8, pady=(0,6))
 
-        ttk.Button(left, text='Clear Logs', command=self._clear_log).pack(fill='x', pady=(6,6), padx=12)
-        ttk.Button(left, text='Platform Help', command=self._show_platform_help).pack(fill='x', pady=(0,12), padx=12)
+        ttk.Button(left, text='Clear Logs', command=self._clear_log).pack(fill='x', pady=(6,12), padx=12)
 
         # initially show host controls only
         try:
@@ -195,36 +139,13 @@ class App(tk.Tk):
         self._header_label = ttk.Label(top_bar, text='CooPad Remote — Dashboard', font=(None, 14, 'bold'))
         self._header_label.pack(side='left', padx=12)
 
-        # Compatibility info notice
-        compat_info = platform_info.get_compatibility_info()
-        if compat_info['can_host'] and compat_info['can_client']:
-            notice_text = (
-                f"✓ {compat_info['platform']} system ready for Host and Client modes. "
-                f"Cross-platform compatible: Can connect to/from Windows and Linux systems. "
-                "Ensure both devices are on the same network or use VPN (ZeroTier, Tailscale)."
-            )
-            notice_fg = '#22c55e'
-        elif compat_info['can_host']:
-            notice_text = (
-                f"⚠ {compat_info['platform']} system ready for Host mode. "
-                "Client mode needs pygame installed. Click 'Platform Help' for setup instructions."
-            )
-            notice_fg = '#f59e0b'
-        elif compat_info['can_client']:
-            notice_text = (
-                f"⚠ {compat_info['platform']} system ready for Client mode. "
-                "Host mode needs virtual gamepad driver. Click 'Platform Help' for setup instructions."
-            )
-            notice_fg = '#f59e0b'
-        else:
-            notice_text = (
-                f"✗ {compat_info['platform']} system not ready. "
-                "Missing required drivers. Click 'Platform Help' for setup instructions."
-            )
-            notice_fg = '#ef4444'
-        
-        notice = tk.Label(right, text=notice_text, wraplength=760, justify='left',
-                         fg=notice_fg, bg=self._palette['frame'], font=(None, 9))
+        # english notice
+        notice_text = (
+            'Note: Host and Client must be on the same local network. '
+            'If you are on different networks, create a secure virtual LAN (e.g., ZeroTier, Tailscale) '
+            'and use the Host IP from that network.'
+        )
+        notice = ttk.Label(right, text=notice_text, wraplength=760, justify='left')
         notice.pack(anchor='nw', padx=12, pady=(0,8))
 
         # custom tab buttons
@@ -299,8 +220,17 @@ class App(tk.Tk):
     def _apply_tab_styles(self):
         # make header contrast and set initial button styles
         try:
-            # Use instance palette
-            pal = self._palette
+            # dark palette
+            pal = {
+                'bg': '#0d0f10',
+                'frame': '#111214',
+                'panel': '#151617',
+                'text_bg': '#0b0b0b',
+                'text_fg': '#e6e6e6',
+                'entry_bg': '#1a1c1d',
+                'button_bg': '#2a7bd6',
+                'accent': '#2a7bd6'
+            }
             self.configure(bg=pal['bg'])
             try:
                 self.style.configure('TFrame', background=pal['frame'])
@@ -414,17 +344,7 @@ class App(tk.Tk):
 
     def _toggle_host(self):
         if getattr(self, '_host_running', False) is not True:
-            # Check if host is ready
-            host_status = platform_info.get_host_status()
-            if host_status['status'] == 'error':
-                self._append_status(f"HOST|✗ Cannot start: {host_status['message']}")
-                self._append_status(f"HOST|→ Solution: {host_status.get('action', host_status.get('details', ''))}")
-                return
-            elif host_status['status'] == 'warning':
-                self._append_status(f"HOST|⚠ Warning: {host_status['message']}")
-                self._append_status(f"HOST|→ {host_status.get('details', '')}")
-            
-            self._append_status('HOST|Starting host...')
+            self._append_status('Requesting host start...')
             try:
                 _ = int(self.port_entry.get())
             except Exception:
@@ -435,7 +355,7 @@ class App(tk.Tk):
             self.host_btn.config(text='Stop Host')
             self.host_state_label.config(text='Host: running', foreground='#228B22')
         else:
-            self._append_status('HOST|Stopping host...')
+            self._append_status('Stopping host...')
             self._gp.stop_host()
             self._host_running = False
             self.host_btn.config(text='Start Host')
@@ -443,13 +363,7 @@ class App(tk.Tk):
 
     def _toggle_client(self):
         if getattr(self, '_client_running', False) is not True:
-            # Check if client is ready
-            client_status = platform_info.get_client_status()
-            if client_status['status'] == 'warning':
-                self._append_status(f"CLIENT|⚠ Note: {client_status['message']}")
-                self._append_status(f"CLIENT|  Will send test data (no physical gamepad)")
-            
-            self._append_status('CLIENT|Starting client...')
+            self._append_status('Requesting client start...')
             target = self.ip_entry.get()
             try:
                 _ = int(self.port_entry.get())
@@ -461,7 +375,7 @@ class App(tk.Tk):
             self.client_btn.config(text='Stop Client')
             self.client_state_label.config(text='Client: running', foreground='#228B22')
         else:
-            self._append_status('CLIENT|Stopping client...')
+            self._append_status('Stopping client...')
             self._gp.stop_client()
             self._client_running = False
             self.client_btn.config(text='Start Client')
@@ -477,126 +391,6 @@ class App(tk.Tk):
             self.client_box.config(state='disabled')
         except Exception:
             pass
-    
-    def _show_platform_help(self):
-        """Show platform-specific help dialog."""
-        help_window = tk.Toplevel(self)
-        help_window.title("Platform Setup Help")
-        help_window.geometry("700x600")
-        help_window.transient(self)
-        
-        # Create scrollable text widget
-        text_frame = ttk.Frame(help_window)
-        text_frame.pack(fill='both', expand=True, padx=20, pady=20)
-        
-        scrollbar = ttk.Scrollbar(text_frame)
-        scrollbar.pack(side='right', fill='y')
-        
-        help_text = tk.Text(text_frame, wrap='word', font=(None, 10),
-                           yscrollcommand=scrollbar.set, bg='#1a1d1f', fg='#e5e7eb')
-        help_text.pack(side='left', fill='both', expand=True)
-        scrollbar.config(command=help_text.yview)
-        
-        # Build help content
-        platform_name = platform_info.get_platform_name()
-        host_status = platform_info.get_host_status()
-        client_status = platform_info.get_client_status()
-        setup_instructions = platform_info.get_setup_instructions()
-        
-        help_content = f"""═══════════════════════════════════════════════════════
-CooPad Platform Setup Help - {platform_name}
-═══════════════════════════════════════════════════════
-
-CURRENT STATUS:
-───────────────────────────────────────────────────────
-
-Host Mode: {host_status['icon']} {host_status['status'].upper()}
-{host_status['message']}
-{host_status.get('details', '')}
-
-Client Mode: {client_status['icon']} {client_status['status'].upper()}
-{client_status['message']}
-{client_status.get('details', '')}
-
-═══════════════════════════════════════════════════════
-SETUP INSTRUCTIONS
-═══════════════════════════════════════════════════════
-
-HOST MODE SETUP:
-"""
-        for instruction in setup_instructions['host']:
-            help_content += f"  {instruction}\n"
-        
-        help_content += "\nCLIENT MODE SETUP:\n"
-        for instruction in setup_instructions['client']:
-            help_content += f"  {instruction}\n"
-        
-        help_content += """
-═══════════════════════════════════════════════════════
-CROSS-PLATFORM COMPATIBILITY
-═══════════════════════════════════════════════════════
-
-✓ SUPPORTED CONFIGURATIONS:
-  • Linux Host ↔ Linux Client
-  • Linux Host ↔ Windows Client
-  • Windows Host ↔ Linux Client
-  • Windows Host ↔ Windows Client
-
-📡 NETWORK REQUIREMENTS:
-  • Both devices on same local network (LAN)
-  • OR connected via VPN (ZeroTier, Tailscale, etc.)
-  • UDP port 7777 must be accessible
-  • Firewall may need to allow Python/CooPad
-
-🎮 HOW IT WORKS:
-  1. Client captures gamepad input (or sends test data)
-  2. Input is sent as UDP packets to Host
-  3. Host receives packets and creates virtual gamepad
-  4. Games see the virtual gamepad as real hardware
-
-⚠️ COMMON ISSUES:
-"""
-        
-        # Add platform-specific issues
-        if host_status.get('action'):
-            help_content += f"\n  HOST: {host_status['action']}\n"
-        if client_status.get('action'):
-            help_content += f"\n  CLIENT: {client_status['action']}\n"
-        
-        help_content += """
-═══════════════════════════════════════════════════════
-TROUBLESHOOTING
-═══════════════════════════════════════════════════════
-
-Cannot start Host:
-  → Check status indicators above
-  → Install required virtual gamepad driver
-  → Run with appropriate permissions (Linux: sudo or setup script)
-
-Cannot connect Client to Host:
-  → Verify both are on same network
-  → Check IP address is correct
-  → Disable firewall temporarily to test
-  → Try localhost (127.0.0.1) for same-machine test
-
-No gamepad detected:
-  → Install pygame: pip install pygame
-  → Connect USB gamepad
-  → Client can still run without gamepad (sends test data)
-
-═══════════════════════════════════════════════════════
-For more information, see:
-  • CROSS_PLATFORM_COMPATIBILITY.md (English)
-  • TEST_SONUCLARI_TR.md (Turkish)
-═══════════════════════════════════════════════════════
-"""
-        
-        help_text.insert('1.0', help_content)
-        help_text.config(state='disabled')
-        
-        # Close button
-        ttk.Button(help_window, text='Close', 
-                  command=help_window.destroy).pack(pady=(0,20))
 
 
 def main():
