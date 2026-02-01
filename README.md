@@ -1,5 +1,6 @@
 # CooPad
 
+![License](https://img.shields.io/badge/license-MIT-green)
 
 <img width="1280" height="832" alt="unwatermarked_Gemini_Generated_Image_p3ggtup3ggtup3gg" src="https://github.com/user-attachments/assets/2111fd40-c0b2-4d52-acec-e788db6b5c83" />
 
