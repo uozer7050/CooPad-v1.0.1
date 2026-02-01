@@ -2,6 +2,17 @@
 
 CooPad is a cross-platform remote gamepad application that allows you to use a gamepad over the network. A client captures gamepad inputs and sends them to a host, which creates a virtual gamepad that games can use.
 
+## 🎯 New: Enhanced User Experience
+
+**Version 5.1 includes major UX improvements:**
+- 🟢 **Smart Platform Detection**: Automatically detects your OS and available drivers
+- 💡 **User-Friendly Error Messages**: Clear explanations with actionable solutions
+- 📊 **Visual Status Indicators**: Color-coded status (✓/⚠/✗) for instant feedback
+- 📚 **Built-in Help System**: Platform-specific setup guides and troubleshooting
+- 🔍 **Pre-Flight Checks**: Validates capabilities before starting to prevent errors
+
+**See [UX_IMPROVEMENTS_TR.md](UX_IMPROVEMENTS_TR.md) for details (Turkish) or [CROSS_PLATFORM_TECHNICAL_EXPLANATION.md](CROSS_PLATFORM_TECHNICAL_EXPLANATION.md) for technical details.**
+
 ## ✅ Cross-Platform Support
 
 CooPad works on both **Linux** and **Windows** as host and client:
@@ -64,16 +75,42 @@ python3 platform_test.py
 
 # Full integration test (host + client)
 python3 integration_test.py
+
+# Cross-platform compatibility tests
+python3 test_cross_platform.py
+
+# UX improvements demonstration
+python3 demo_ux_improvements.py
+
+# UI mockup visualization
+python3 ui_mockup.py
 ```
 
 ## Documentation
 
+### User Experience & Setup
+- **[UX_IMPROVEMENTS_TR.md](UX_IMPROVEMENTS_TR.md)** - Turkish documentation of UI improvements
+  - All user questions answered
+  - Error message improvements
+  - Platform status indicators
+  - Cross-platform explanation
+
+- **[CROSS_PLATFORM_TECHNICAL_EXPLANATION.md](CROSS_PLATFORM_TECHNICAL_EXPLANATION.md)** - Technical deep-dive
+  - Why cross-platform works
+  - Packet format explanation
+  - Platform independence proof
+  - Virtual gamepad creation details
+
+### Complete Guides
 - **[CROSS_PLATFORM_COMPATIBILITY.md](CROSS_PLATFORM_COMPATIBILITY.md)** - Complete cross-platform guide
   - Platform-specific requirements
   - Setup instructions for Linux and Windows
   - Known issues and troubleshooting
   - Performance expectations
   - Network configuration
+
+- **[TEST_SONUCLARI_TR.md](TEST_SONUCLARI_TR.md)** - Turkish test results
+- **[TESTING_SUMMARY.md](TESTING_SUMMARY.md)** - Executive summary
 
 ## Features
 
