@@ -135,6 +135,10 @@ class GamepadHost:
         self._packet_count = 0
         self._latency_samples = []
         self._last_telemetry_time = 0
+        # Rate limiting: track packets per client
+        self._rate_limit_window = 1.0  # seconds
+        self._rate_limit_max = 150  # max packets per second per client
+        self._client_packet_counts = {}  # client_id -> (timestamp, count)
 
     def start(self):
         if self._thread and self._thread.is_alive():
@@ -196,6 +200,10 @@ class GamepadHost:
 
             if state.version != PROTOCOL_VERSION:
                 self.status_cb(f'bad version {state.version} from {addr}')
+                continue
+            
+            # Rate limiting check
+            if not self._check_rate_limit(state.client_id, addr):
                 continue
 
             # ownership
@@ -362,3 +370,37 @@ class GamepadHost:
             else:
                 self.telemetry_cb(f'Latency: {latency_ms:.1f}ms | Jitter: {jitter_ms:.1f}ms | seq={state.sequence}')
             self._last_telemetry_time = current_time
+    
+    def _check_rate_limit(self, client_id: int, addr) -> bool:
+        """Check if client is within rate limits. Returns True if allowed, False if blocked."""
+        current_time = time.time()
+        
+        # Clean up old entries
+        to_remove = []
+        for cid, (timestamp, _) in self._client_packet_counts.items():
+            if current_time - timestamp > self._rate_limit_window * 2:
+                to_remove.append(cid)
+        for cid in to_remove:
+            del self._client_packet_counts[cid]
+        
+        # Check/update current client
+        if client_id in self._client_packet_counts:
+            timestamp, count = self._client_packet_counts[client_id]
+            if current_time - timestamp < self._rate_limit_window:
+                if count >= self._rate_limit_max:
+                    # Rate limit exceeded - log once per window
+                    if count == self._rate_limit_max:
+                        self.status_cb(f'rate limit exceeded for client {client_id} from {addr}')
+                    self._client_packet_counts[client_id] = (timestamp, count + 1)
+                    return False
+                else:
+                    self._client_packet_counts[client_id] = (timestamp, count + 1)
+                    return True
+            else:
+                # New window
+                self._client_packet_counts[client_id] = (current_time, 1)
+                return True
+        else:
+            # First packet from this client
+            self._client_packet_counts[client_id] = (current_time, 1)
+            return True
