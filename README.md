@@ -350,19 +350,6 @@ See LICENSE file for details.
 - **Issues & Support**: https://github.com/uozer7050/v5.1/issues
 - **Releases**: https://github.com/uozer7050/v5.1/releases
 
-## 📅 Version History
-
-See [CHANGELOG_TR.md](CHANGELOG_TR.md) for detailed changes (Turkish).
-
-### Latest Version: 5.1
-- Configurable UDP update rates (30/60/90 Hz)
-- **Controller profile support (PS4, PS5, Xbox 360)**
-- **GUI controller selection in Settings**
-- Real-time network telemetry (latency, jitter)
-- Enhanced security (packet validation, rate limiting)
-- Improved build system for Windows and Linux
-- Settings tab with network configuration
-- Cross-platform compatibility improvements
 - User-friendly error messages and status indicators
 
 ---
