@@ -1,6 +1,7 @@
 #!/usr/bin/env pwsh
 # Build Windows executable with PyInstaller
 # Usage: .\scripts\build_windows.ps1 [version]
+# Note: Must be run from the repository root directory
 
 param(
     [string]$Version = "1.0.0"
@@ -9,9 +10,17 @@ param(
 Write-Host "Building CooPad for Windows version $Version" -ForegroundColor Green
 Write-Host ""
 
+# Check if main.py exists (verify we're in the right directory)
+if (-not (Test-Path "main.py")) {
+    Write-Host "ERROR: main.py not found. Please run this script from the repository root directory." -ForegroundColor Red
+    Write-Host "Example: .\scripts\build_windows.ps1" -ForegroundColor Yellow
+    exit 1
+}
+
 # Install dependencies
+# Note: Using pygame-ce (Community Edition) which supports Python 3.12+
 Write-Host "Installing dependencies..." -ForegroundColor Yellow
-pip install pyinstaller pillow pygame
+pip install pyinstaller pillow pygame-ce
 
 # Build executable
 Write-Host "Running PyInstaller..." -ForegroundColor Yellow

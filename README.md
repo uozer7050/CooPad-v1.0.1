@@ -131,9 +131,11 @@ sudo modprobe uinput
 ```
 
 ### Client Requirements (Both Platforms)
-- **pygame**: For reading physical gamepad input
+- **pygame-ce**: For reading physical gamepad input (pygame-ce 2.4+ required for Python 3.12+)
 - **Physical gamepad**: USB or Bluetooth connected
 - Client can run without a physical gamepad (sends test data)
+
+**Note**: If you have Python 3.12 or newer, pygame-ce (Community Edition) is required instead of the legacy pygame package.
 
 ## 📊 Monitoring & Performance
 
@@ -160,14 +162,17 @@ Both Host and Client tabs show real-time telemetry:
 ## 🛠️ Building from Source
 
 ### Build Requirements
-- Python 3.8+
+- Python 3.8+ (Python 3.12+ recommended)
 - PyInstaller
 - Platform-specific requirements (see above)
+
+**Important for Python 3.12+**: The build scripts automatically use `pygame-ce` (Community Edition) which supports Python 3.12 and newer. The legacy `pygame` package does not support Python 3.12+.
 
 ### Build Commands
 
 **Windows executable:**
 ```bash
+# Must be run from the repository root directory
 scripts\build_windows.bat 1.0.0
 # or
 .\scripts\build_windows.ps1 1.0.0
@@ -214,7 +219,8 @@ Output will be in the `dist/` directory.
 
 ### No Gamepad Detected (Client)
 - Ensure gamepad is connected and working
-- Install pygame: `pip install pygame`
+- Install pygame-ce: `pip install pygame-ce` (for Python 3.12+)
+- Or install pygame: `pip install pygame` (for Python 3.11 and earlier)
 - Test gamepad with system tools first
 - Client can run without gamepad (sends test data)
 

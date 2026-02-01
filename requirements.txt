@@ -1,5 +1,5 @@
 Pillow
-pygame
+pygame-ce
 evdev
 # vgamepad is Windows-only (ViGEm). Keep it optional for Windows hosts.
 # If running on Windows and you need vgamepad support, install it separately.
