@@ -7,6 +7,7 @@ CooPad allows you to use a physical gamepad connected to one computer (Client) t
 ## 🎮 Features
 
 - **Cross-Platform Support**: Works on Windows and Linux (all combinations supported)
+- **Controller Profiles**: Built-in support for PS4, PS5, Xbox 360, and generic controllers
 - **Low Latency**: 1-10ms on local networks, optimized for real-time gaming
 - **Configurable Update Rates**: Choose between 30Hz, 60Hz, or 90Hz for optimal performance
 - **Real-Time Telemetry**: Monitor latency, jitter, and packet rates
@@ -79,6 +80,11 @@ python3 main.py
 
 3. **Configure Settings**:
    - Go to the Settings tab
+   - Choose your controller type:
+     - PS4 Controller
+     - PS5 Controller
+     - Xbox 360 Controller
+     - Generic (for other controllers)
    - Choose update rate based on your network:
      - 30 Hz: Lower bandwidth, suitable for slower networks
      - 60 Hz: Recommended for most users
@@ -132,10 +138,20 @@ sudo modprobe uinput
 
 ### Client Requirements (Both Platforms)
 - **pygame-ce**: For reading physical gamepad input (pygame-ce 2.4+ required for Python 3.12+)
-- **Physical gamepad**: USB or Bluetooth connected
+- **Physical gamepad**: USB or Bluetooth connected (PS4, PS5, Xbox 360, or generic)
 - Client can run without a physical gamepad (sends test data)
 
 **Note**: If you have Python 3.12 or newer, pygame-ce (Community Edition) is required instead of the legacy pygame package.
+
+## 🎮 Controller Support
+
+CooPad includes built-in profiles for popular controllers:
+- **PlayStation 4 Controller**: Proper axis and button mapping for DS4
+- **PlayStation 5 Controller**: DualSense support with hat-based D-pad
+- **Xbox 360 Controller**: Correct mapping including combined trigger axis
+- **Generic Controller**: Fallback for other standard controllers
+
+See [Controller Profiles Guide](docs/CONTROLLER_PROFILES.md) for detailed mapping information.
 
 ## 📊 Monitoring & Performance
 
@@ -314,6 +330,8 @@ See [CHANGELOG_TR.md](CHANGELOG_TR.md) for detailed changes (Turkish).
 
 ### Latest Version: 5.1
 - Configurable UDP update rates (30/60/90 Hz)
+- **Controller profile support (PS4, PS5, Xbox 360)**
+- **GUI controller selection in Settings**
 - Real-time network telemetry (latency, jitter)
 - Enhanced security (packet validation, rate limiting)
 - Improved build system for Windows and Linux
