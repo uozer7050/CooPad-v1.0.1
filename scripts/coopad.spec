@@ -99,7 +99,7 @@ elif is_linux:
         'evdev.ecodes',
         'evdev.events',
         'evdev.uinput',
-        '_tkinter',  # Explicitly include _tkinter C extension
+        '_tkinter',  # Tell PyInstaller to include the _tkinter C extension module
     ])
 
 a = Analysis(
