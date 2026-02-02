@@ -54,7 +54,7 @@ pip install -r requirements.txt
 python main.py
 ```
 
-#### Linux
+#### Ubuntu/Debian based Linux distros (Mint, Pop!_OS, Zorin, KDE Neon)
 
 **Option 1: Install .deb package (Recommended)**
 ```bash
