@@ -6,7 +6,7 @@ try:
     import tkinter as tk
     from tkinter import ttk
 except ImportError:
-    print("Error: tkinter is not installed. Please install it using 'sudo apt-get install python3-tk' on Linux.")
+    print("Error: tkinter is not installed. Please install it for your platform.")
     sys.exit(1)
 
 
@@ -44,7 +44,7 @@ class App(tk.Tk):
                 if os.path.exists(ico_path):
                     self.wm_iconbitmap(ico_path)
             else:
-                # Linux/Unix - use PNG with iconphoto
+                # Other platforms - use PNG with iconphoto
                 png_path = os.path.join(base, "img", "src_CooPad.png")
                 if os.path.exists(png_path):
                     icon_img = Image.open(png_path)
@@ -200,7 +200,6 @@ class App(tk.Tk):
         if compat_info['can_host'] and compat_info['can_client']:
             notice_text = (
                 f"✓ {compat_info['platform']} system ready for Host and Client modes. "
-                f"Cross-platform compatible: Can connect to/from Windows and Linux systems. "
                 "Ensure both devices are on the same network or use VPN (ZeroTier, Tailscale)."
             )
             notice_fg = '#22c55e'
@@ -366,7 +365,7 @@ License: Open Source
 CooPad allows you to use a gamepad over a network connection. The client captures gamepad inputs and sends them to the host, which creates a virtual gamepad that games can use.
 
 Features:
-• Cross-platform support (Windows ↔ Linux)
+• Windows support for Host and Client modes
 • Low latency gameplay
 • Configurable update rates
 • Controller profile selection (PS4, PS5, Xbox 360, Nintendo Switch)
@@ -642,9 +641,6 @@ CROSS-PLATFORM COMPATIBILITY
 ═══════════════════════════════════════════════════════
 
 ✓ SUPPORTED CONFIGURATIONS:
-  • Linux Host ↔ Linux Client
-  • Linux Host ↔ Windows Client
-  • Windows Host ↔ Linux Client
   • Windows Host ↔ Windows Client
 
 📡 NETWORK REQUIREMENTS:
@@ -676,7 +672,7 @@ TROUBLESHOOTING
 Cannot start Host:
   → Check status indicators above
   → Install required virtual gamepad driver
-  → Run with appropriate permissions (Linux: sudo or setup script)
+  → Run with appropriate permissions
 
 Cannot connect Client to Host:
   → Verify both are on same network

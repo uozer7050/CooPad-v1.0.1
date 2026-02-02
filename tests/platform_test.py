@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Cross-platform compatibility test for CooPad
-Tests host and client functionality on Linux and Windows
+Platform compatibility test for CooPad
+Tests host and client functionality on Windows
 """
 import os
 import sys
@@ -22,7 +22,7 @@ class PlatformChecker:
         
     def check_all(self) -> Dict:
         """Run all compatibility checks"""
-        print(f"=== CooPad Cross-Platform Compatibility Test ===")
+        print(f"=== CooPad Platform Compatibility Test ===")
         print(f"Platform: {self.os_name}")
         print(f"Python: {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")
         print(f"Architecture: {self.arch}\n")
@@ -39,10 +39,7 @@ class PlatformChecker:
         results['checks']['pygame'] = self._check_pygame()
         
         # Platform-specific dependencies
-        if self.os_name == 'Linux':
-            results['checks']['evdev'] = self._check_evdev()
-            results['checks']['uinput'] = self._check_uinput()
-        elif self.os_name == 'Windows':
+        if self.os_name == 'Windows':
             results['checks']['vgamepad'] = self._check_vgamepad()
         
         # Network functionality
@@ -61,7 +58,7 @@ class PlatformChecker:
             print("✓ tkinter: Available")
             return {'status': 'ok', 'message': 'Available'}
         except ImportError as e:
-            msg = f"Not available. Install with: sudo apt-get install python3-tk (Linux) or reinstall Python with tk support (Windows)"
+            msg = f"Not available. Install Python with tk support"
             print(f"✗ tkinter: {msg}")
             self.issues.append(('ERROR', 'GUI', msg))
             return {'status': 'error', 'message': str(e)}
@@ -89,44 +86,6 @@ class PlatformChecker:
             print(f"✗ pygame: {msg}")
             self.issues.append(('WARNING', 'Client', 'Joystick input will not be available'))
             return {'status': 'warning', 'message': str(e)}
-    
-    def _check_evdev(self) -> Dict:
-        """Check if evdev is available (Linux only)"""
-        try:
-            import evdev
-            print(f"✓ evdev: Available (Linux virtual gamepad support)")
-            return {'status': 'ok', 'message': 'Virtual gamepad support available'}
-        except ImportError as e:
-            msg = "Not available. Install with: pip install evdev"
-            print(f"✗ evdev: {msg}")
-            self.issues.append(('ERROR', 'Host', 'Virtual gamepad creation will fail'))
-            return {'status': 'error', 'message': str(e)}
-    
-    def _check_uinput(self) -> Dict:
-        """Check if uinput device is accessible (Linux only)"""
-        try:
-            if not os.path.exists('/dev/uinput'):
-                msg = "/dev/uinput device not found. Load uinput module with: sudo modprobe uinput"
-                print(f"✗ uinput device: {msg}")
-                self.issues.append(('ERROR', 'Host', msg))
-                return {'status': 'error', 'message': msg}
-            
-            # Check permissions
-            import stat
-            st = os.stat('/dev/uinput')
-            mode = st.st_mode
-            
-            # Check if we can access it
-            if os.access('/dev/uinput', os.W_OK):
-                print("✓ uinput device: Accessible")
-                return {'status': 'ok', 'message': 'Device accessible'}
-            else:
-                msg = "Device exists but not accessible. Run scripts/setup_uinput.sh or run as root"
-                print(f"⚠ uinput device: {msg}")
-                self.issues.append(('WARNING', 'Host', msg))
-                return {'status': 'warning', 'message': msg}
-        except Exception as e:
-            return {'status': 'error', 'message': str(e)}
     
     def _check_vgamepad(self) -> Dict:
         """Check if vgamepad is available (Windows only)"""
@@ -238,21 +197,16 @@ class PlatformChecker:
         
         # Platform-specific advice
         print("\n=== Platform-Specific Advice ===")
-        if self.os_name == 'Linux':
-            print("For Linux Host:")
-            print("  - Ensure uinput module is loaded: sudo modprobe uinput")
-            print("  - Run scripts/setup_uinput.sh to configure permissions")
-            print("  - Or run the host with: sudo -E python3 main.py")
-            print("\nFor Linux Client:")
-            print("  - Install pygame: pip install pygame")
-            print("  - Connect a USB gamepad or use virtual joystick")
-        elif self.os_name == 'Windows':
+        if self.os_name == 'Windows':
             print("For Windows Host:")
             print("  - Install ViGEm Bus Driver from: https://github.com/ViGEm/ViGEmBus/releases")
             print("  - Install vgamepad: pip install vgamepad")
             print("\nFor Windows Client:")
             print("  - Install pygame: pip install pygame")
             print("  - Windows may require additional firewall rules for UDP traffic")
+        else:
+            print(f"Platform {self.os_name} may not be fully supported.")
+            print("This application is designed for Windows.")
 
 
 def main():

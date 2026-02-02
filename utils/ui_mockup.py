@@ -25,8 +25,8 @@ def print_ui_mockup():
     print(f"\n{GRAY}╔════════════════════════════════════════════════════════════════════════════════════════════════╗{RESET}")
     print(f"{GRAY}║{RESET} {BOLD}CooPad Remote — Dashboard{RESET}                                           {GRAY}[Host] [Client]{RESET} {GRAY}║{RESET}")
     print(f"{GRAY}╠════════════════════════════════════════════════════════════════════════════════════════════════╣{RESET}")
-    print(f"{GRAY}║{RESET} {GREEN}✓ Linux system ready for Host and Client modes.{RESET}                                         {GRAY}║{RESET}")
-    print(f"{GRAY}║{RESET} Cross-platform compatible: Can connect to/from Windows and Linux systems.                {GRAY}║{RESET}")
+    print(f"{GRAY}║{RESET} {GREEN}✓ Windows system ready for Host and Client modes.{RESET}                                       {GRAY}║{RESET}")
+    print(f"{GRAY}║{RESET} Windows clients can connect via local network or VPN.                                     {GRAY}║{RESET}")
     print(f"{GRAY}╠══════════════════════════╦═════════════════════════════════════════════════════════════════════╣{RESET}")
     print(f"{GRAY}║{RESET}  {BOLD}LEFT PANEL{RESET}            {GRAY}║{RESET}  {BOLD}MAIN AREA{RESET}                                                          {GRAY}║{RESET}")
     print(f"{GRAY}╠══════════════════════════╬═════════════════════════════════════════════════════════════════════╣{RESET}")
@@ -38,10 +38,10 @@ def print_ui_mockup():
     print(f"{GRAY}║{RESET}  └────────────────────┘ {GRAY}║{RESET}                                                                       {GRAY}║{RESET}")
     print(f"{GRAY}║{RESET}                          {GRAY}║{RESET}  {BOLD}Host Log:{RESET}                                                          {GRAY}║{RESET}")
     print(f"{GRAY}║{RESET}  ┌────────────────────┐ {GRAY}║{RESET}  ┌─────────────────────────────────────────────────────────────────┐ {GRAY}║{RESET}")
-    print(f"{GRAY}║{RESET}  │ {BOLD}Platform: Linux{RESET}   │ {GRAY}║{RESET}  │ {GREEN}✓ Host initialized successfully{RESET}                           │ {GRAY}║{RESET}")
-    print(f"{GRAY}║{RESET}  │                    │ {GRAY}║{RESET}  │ {GREEN}✓ uinput virtual gamepad initialized{RESET}                      │ {GRAY}║{RESET}")
-    print(f"{GRAY}║{RESET}  │ {YELLOW}⚠{RESET} Host: uinput    │ {GRAY}║{RESET}  │ {CYAN}listening on *:7777{RESET}                                       │ {GRAY}║{RESET}")
-    print(f"{GRAY}║{RESET}  │   not accessible   │ {GRAY}║{RESET}  │ {CYAN}owner set to 12345678{RESET}                                     │ {GRAY}║{RESET}")
+    print(f"{GRAY}║{RESET}  │ {BOLD}Platform: Windows{RESET} │ {GRAY}║{RESET}  │ {GREEN}✓ Host initialized successfully{RESET}                           │ {GRAY}║{RESET}")
+    print(f"{GRAY}║{RESET}  │                    │ {GRAY}║{RESET}  │ {GREEN}✓ vgamepad initialized{RESET}                                    │ {GRAY}║{RESET}")
+    print(f"{GRAY}║{RESET}  │ {GREEN}✓{RESET} Host: Ready     │ {GRAY}║{RESET}  │ {CYAN}listening on *:7777{RESET}                                       │ {GRAY}║{RESET}")
+    print(f"{GRAY}║{RESET}  │   ViGEmBus OK      │ {GRAY}║{RESET}  │ {CYAN}owner set to 12345678{RESET}                                     │ {GRAY}║{RESET}")
     print(f"{GRAY}║{RESET}  │                    │ {GRAY}║{RESET}  │ {GRAY}Receiving gamepad input from client...{RESET}                    │ {GRAY}║{RESET}")
     print(f"{GRAY}║{RESET}  │ {GREEN}✓{RESET} Client: pygame  │ {GRAY}║{RESET}  │                                                             │ {GRAY}║{RESET}")
     print(f"{GRAY}║{RESET}  │   ready            │ {GRAY}║{RESET}  └─────────────────────────────────────────────────────────────────┘ {GRAY}║{RESET}")
@@ -92,10 +92,10 @@ def print_ui_mockup():
     
     # Example 1: Missing driver
     print(f"\n{RED}✗ BEFORE (Technical):{RESET}")
-    print(f"   {GRAY}Host error: [Errno 13] Permission denied: '/dev/uinput'{RESET}")
+    print(f"   {GRAY}Host error: [Errno 13] Permission denied{RESET}")
     print(f"\n{GREEN}✓ AFTER (User-Friendly):{RESET}")
-    print(f"   {RED}✗ Cannot start: uinput device found but not accessible{RESET}")
-    print(f"   {YELLOW}→ Solution: Run ./scripts/setup_uinput.sh or use sudo{RESET}")
+    print(f"   {RED}✗ Cannot start: Virtual gamepad device not accessible{RESET}")
+    print(f"   {YELLOW}→ Solution: Check system requirements and permissions{RESET}")
     
     # Example 2: Windows ViGEm missing
     print(f"\n{RED}✗ BEFORE (Technical):{RESET}")
@@ -112,19 +112,18 @@ def print_ui_mockup():
     print(f"   {YELLOW}→ Solution: Check firewall and network connectivity{RESET}")
     
     print("\n" + "="*100)
-    print(f"{BOLD}CROSS-PLATFORM COMPATIBILITY ASSURANCE:{RESET}")
+    print(f"{BOLD}PLATFORM COMPATIBILITY:{RESET}")
     print("="*100)
     
     print(f"""
-{GREEN}✓ Gamepad input packets are platform-agnostic{RESET}
-  • Binary protocol works regardless of OS
+{GREEN}✓ Gamepad input packets work across network{RESET}
+  • Binary protocol works over UDP
   • Network byte order ensures compatibility
-  • Tested: Linux ↔ Windows communication works
+  • Tested on local and VPN networks
 
-{GREEN}✓ Virtual gamepad creation is platform-specific{RESET}
+{GREEN}✓ Virtual gamepad creation for Windows{RESET}
   • Windows: ViGEmBus creates Xbox 360 controller
-  • Linux: evdev/uinput creates standard joystick
-  • Both appear as real hardware to games
+  • Appears as real hardware to games
 
 {GREEN}✓ Status indicators show what's available{RESET}
   • Green ✓: Feature ready to use

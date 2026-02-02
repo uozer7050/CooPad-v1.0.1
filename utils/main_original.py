@@ -10,7 +10,7 @@ try:
     import tkinter as tk
     from tkinter import ttk
 except ImportError:
-    print("Error: tkinter is not installed. Please install it using 'sudo apt-get install python3-tk' on Linux.")
+    print("Error: tkinter is not installed. Please install it for your platform.")
     sys.exit(1)
 
 
@@ -44,7 +44,7 @@ class App(tk.Tk):
                 if os.path.exists(ico_path):
                     self.wm_iconbitmap(ico_path)
             else:
-                # Linux/Unix - use PNG with iconphoto
+                # Other platforms - use PNG with iconphoto
                 png_path = os.path.join(base, "img", "src_CooPad.png")
                 if os.path.exists(png_path):
                     icon_img = Image.open(png_path)

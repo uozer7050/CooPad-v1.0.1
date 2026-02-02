@@ -91,7 +91,7 @@ class GpController:
                         h.stop()
                     except PermissionError as e:
                         inner_self.status_cb(f"✗ Permission denied: {e}")
-                        inner_self.status_cb("→ Solution: Run ./scripts/setup_uinput.sh or use sudo")
+                        inner_self.status_cb("→ Solution: Check system requirements and permissions")
                     except OSError as e:
                         inner_self.status_cb(f"✗ System error: {e}")
                         inner_self.status_cb("→ Check if virtual gamepad driver is installed")

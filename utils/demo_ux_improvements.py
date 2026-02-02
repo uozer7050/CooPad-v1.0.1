@@ -47,8 +47,7 @@ def demonstrate_platform_detection():
         f"Detected Platform: {pinfo.get_platform_name()}",
         [
             f"System: {pinfo.os_name}",
-            f"Windows: {'Yes' if pinfo.is_windows else 'No'}",
-            f"Linux: {'Yes' if pinfo.is_linux else 'No'}"
+            f"Windows: {'Yes' if pinfo.is_windows else 'No'}"
         ],
         'blue'
     )
@@ -171,15 +170,11 @@ def demonstrate_platform_detection():
         "  6. Games see virtual gamepad as real hardware",
         "",
         "PLATFORM COMPATIBILITY:",
-        "  ✓ Linux Client → Windows Host (YES - packets are platform-agnostic)",
-        "  ✓ Windows Client → Linux Host (YES - packets are platform-agnostic)",
-        "  ✓ Linux Client → Linux Host (YES - same platform)",
-        "  ✓ Windows Client → Windows Host (YES - same platform)",
+        "  ✓ Windows Client → Windows Host",
         "",
         "VIRTUAL GAMEPAD DRIVERS:",
         "  • Windows Host: Uses ViGEmBus to create Xbox 360 controller",
-        "  • Linux Host: Uses evdev/uinput to create standard joystick",
-        "  • Both appear as real hardware to games",
+        "  • Appears as real hardware to games",
         "",
         "PACKET FORMAT:",
         "  • Binary protocol (protocol version 2)",
