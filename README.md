@@ -16,7 +16,7 @@
 
 CooPad allows you to use a physical gamepad connected to one computer (Client) to control games on another computer (Host) over a local network or VPN. Perfect for couch gaming, game streaming, or playing with friends remotely.
 
-🖥️**100% open-source project. Contributions, reviews, and improvements are welcome, and some features or edge cases may still be missing.**
+🖥️ **100% open-source project. Contributions, reviews, and improvements are welcome, and some features or edge cases may still be missing.**
 
 ## 🎮 Features
 
@@ -27,8 +27,7 @@ CooPad allows you to use a physical gamepad connected to one computer (Client) t
 - **Real-Time Telemetry**: Monitor latency, jitter, and packet rates
 - **Smart Platform Detection**: Automatically detects your OS and available drivers
 - **User-Friendly Interface**: Clean GUI with helpful status indicators and setup guides
-- **Advanced Security**: Comprehensive DoS protection with rate limiting, IP filtering, and automatic threat response
-- **Secure**: Built-in packet validation and rate limiting protection
+- **Advanced Security**: Comprehensive protection with rate limiting, IP filtering, and automatic threat response
 
 ## 🚀 Quick Start
 
@@ -102,12 +101,14 @@ python3 main.py
      - Nintendo Switch Joy-Con
      - Nintendo Switch Pro Controller
      - Generic (for other controllers)
-   <img width="400" height="407" alt="image" src="https://github.com/user-attachments/assets/01f86827-a8f5-4fe8-887a-ad81e4b2da94" />
 
-   - Choose update rate based on your network:
+   - Choose update rate based on your network and desired input responsiveness
      - 30 Hz: Lower bandwidth, suitable for slower networks
      - 60 Hz: Recommended for most users
      - 90 Hz: High performance for low-latency networks
+
+   
+   <img width="400" height="407" alt="image" src="https://github.com/user-attachments/assets/01f86827-a8f5-4fe8-887a-ad81e4b2da94" />
 
 ## 📡 Network Setup
 
@@ -165,9 +166,12 @@ sudo modprobe uinput
 ## 🎮 Controller Support
 
 CooPad includes built-in profiles for popular controllers:
-- **PlayStation 4 Controller**: Proper axis and button mapping for DS4
-- **PlayStation 5 Controller**: DualSense support with hat-based D-pad
-- **Xbox 360 Controller**: Correct mapping including combined trigger axis
+
+- **PlayStation 4 Controller**: Proper axis and button mapping for DS4  
+- **PlayStation 5 Controller**: DualSense support with hat-based D-pad  
+- **Xbox 360 Controller**: Correct mapping including combined trigger axis  
+- **Nintendo Switch Joy-Con**: Left and Right Joy-Con supported individually, with correct button mapping  
+- **Nintendo Switch Pro Controller**: Full Pro Controller mapping
 - **Generic Controller**: Fallback for other standard controllers
 
 See [Controller Profiles Guide](docs/CONTROLLER_PROFILES.md) for detailed mapping information.
