@@ -15,8 +15,8 @@ pip-wheel-metadata/
 
 # PyInstaller
 *.spec
-# Exception: Keep the main application spec file
-!coopad.spec
+# Exception: Keep the spec files in scripts directory
+!scripts/*.spec
 
 # Virtual environments
 venv/
@@ -61,6 +61,8 @@ logs/
 # Packaging output
 package/
 *.deb
+# Exception: Keep .deb files in scripts/releases for distribution
+!scripts/releases/*.deb
 
 # Misc
 .python-version

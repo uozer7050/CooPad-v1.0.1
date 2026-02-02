@@ -23,6 +23,11 @@ block_cipher = None
 is_windows = sys.platform == 'win32'
 is_linux = sys.platform.startswith('linux')
 
+# Get project root directory
+# When PyInstaller runs the spec file, it runs from the directory where pyinstaller is invoked
+# which should be the project root, so we use current working directory
+project_root = os.getcwd()
+
 # Collect vgamepad data files (DLLs) if on Windows
 vgamepad_datas = []
 if is_windows:
@@ -43,10 +48,10 @@ if is_linux:
     except Exception as e:
         print(f"Warning: Could not collect evdev data files: {e}")
 
-# Application data files
+# Application data files (use absolute paths)
 app_datas = [
-    ('img', 'img'),  # Include all image assets
-    ('gp', 'gp'),    # Include gp package
+    (os.path.join(project_root, 'img'), 'img'),  # Include all image assets
+    (os.path.join(project_root, 'gp'), 'gp'),    # Include gp package
 ]
 
 # Combine all data files
@@ -82,12 +87,12 @@ elif is_linux:
     ])
 
 a = Analysis(
-    ['main.py'],
-    pathex=[],
+    [os.path.join(project_root, 'main.py')],  # Path to main.py from project root
+    pathex=[project_root],  # Add project root to path
     binaries=[],
     datas=all_datas,
     hiddenimports=hiddenimports,
-    hookspath=['utils'],  # Look for hooks in utils directory
+    hookspath=[os.path.join(project_root, 'utils')],  # Path to utils from project root
     hooksconfig={},
     runtime_hooks=[],
     excludes=[],
@@ -119,7 +124,6 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    # Icon path is relative to where pyinstaller is run (project root)
-    # The build scripts ensure this is run from the correct directory
-    icon='img/src_CooPad.ico' if os.path.exists('img/src_CooPad.ico') else None,
+    # Icon path using absolute path from project root
+    icon=os.path.join(project_root, 'img/src_CooPad.ico') if os.path.exists(os.path.join(project_root, 'img/src_CooPad.ico')) else None,
 )
