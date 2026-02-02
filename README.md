@@ -12,7 +12,7 @@
 
 
 
-**Cross-platform remote gamepad application for gaming over network**
+**Remote gamepad application for gaming over network**
 
 CooPad allows you to use a physical gamepad connected to one computer (Client) to control games on another computer (Host) over a local network or VPN. Perfect for couch gaming, game streaming, or playing with friends remotely.
 
@@ -20,7 +20,6 @@ CooPad allows you to use a physical gamepad connected to one computer (Client) t
 
 ## 🎮 Features
 
-- **Cross-Platform Support**: Works on Windows
 - **Controller Profiles**: Built-in support for PS4, PS5, Xbox 360, Nintendo Switch (Joy-Con and Pro Controller), and generic controllers
 - **Low Latency**: 1-20ms on local networks, optimized for real-time gaming
 - **Configurable Update Rates**: Choose between 30Hz, 60Hz, or 90Hz for optimal performance
