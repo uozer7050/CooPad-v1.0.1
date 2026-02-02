@@ -106,7 +106,7 @@ class PlatformInfo:
         # Platform compatibility notes
         if self.is_windows:
             info['notes'] = [
-                'Can receive input from Windows clients',
+                'Supports multiple Windows clients',
                 'ViGEmBus creates Xbox 360 controllers recognized by all games'
             ]
         

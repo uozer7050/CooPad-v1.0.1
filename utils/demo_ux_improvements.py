@@ -170,7 +170,7 @@ def demonstrate_platform_detection():
         "  6. Games see virtual gamepad as real hardware",
         "",
         "PLATFORM COMPATIBILITY:",
-        "  ✓ Windows Client → Windows Host (YES)",
+        "  ✓ Windows Client → Windows Host",
         "",
         "VIRTUAL GAMEPAD DRIVERS:",
         "  • Windows Host: Uses ViGEmBus to create Xbox 360 controller",

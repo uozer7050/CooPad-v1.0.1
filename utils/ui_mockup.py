@@ -26,7 +26,7 @@ def print_ui_mockup():
     print(f"{GRAY}║{RESET} {BOLD}CooPad Remote — Dashboard{RESET}                                           {GRAY}[Host] [Client]{RESET} {GRAY}║{RESET}")
     print(f"{GRAY}╠════════════════════════════════════════════════════════════════════════════════════════════════╣{RESET}")
     print(f"{GRAY}║{RESET} {GREEN}✓ Windows system ready for Host and Client modes.{RESET}                                       {GRAY}║{RESET}")
-    print(f"{GRAY}║{RESET} Network compatible devices can connect via local network or VPN.                         {GRAY}║{RESET}")
+    print(f"{GRAY}║{RESET} Windows clients can connect via local network or VPN.                                     {GRAY}║{RESET}")
     print(f"{GRAY}╠══════════════════════════╦═════════════════════════════════════════════════════════════════════╣{RESET}")
     print(f"{GRAY}║{RESET}  {BOLD}LEFT PANEL{RESET}            {GRAY}║{RESET}  {BOLD}MAIN AREA{RESET}                                                          {GRAY}║{RESET}")
     print(f"{GRAY}╠══════════════════════════╬═════════════════════════════════════════════════════════════════════╣{RESET}")
