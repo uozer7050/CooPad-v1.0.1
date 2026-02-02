@@ -4,21 +4,24 @@ PyInstaller spec file for CooPad - Remote Gamepad Application
 
 This spec file handles the proper bundling of all dependencies including:
 - vgamepad DLL files (Windows only)
+- evdev module (Linux only)
 - Image assets
 - Python packages
 
 Usage:
-    pyinstaller coopad.spec
+    pyinstaller scripts/coopad.spec
+    (run from project root directory)
 """
 
 import sys
 import os
-from PyInstaller.utils.hooks import collect_data_files
+from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
 block_cipher = None
 
-# Determine if we're building on Windows
+# Determine platform
 is_windows = sys.platform == 'win32'
+is_linux = sys.platform.startswith('linux')
 
 # Collect vgamepad data files (DLLs) if on Windows
 vgamepad_datas = []
@@ -31,6 +34,15 @@ if is_windows:
         print(f"Warning: Could not collect vgamepad data files: {e}")
         print("vgamepad may not be installed. Install with: pip install vgamepad")
 
+# Collect evdev data files if on Linux
+evdev_datas = []
+if is_linux:
+    try:
+        evdev_datas = collect_data_files('evdev', include_py_files=False)
+        print(f"Found {len(evdev_datas)} evdev data files")
+    except Exception as e:
+        print(f"Warning: Could not collect evdev data files: {e}")
+
 # Application data files
 app_datas = [
     ('img', 'img'),  # Include all image assets
@@ -38,7 +50,7 @@ app_datas = [
 ]
 
 # Combine all data files
-all_datas = app_datas + vgamepad_datas
+all_datas = app_datas + vgamepad_datas + evdev_datas
 
 # Hidden imports that PyInstaller might miss
 hiddenimports = [
@@ -47,6 +59,10 @@ hiddenimports = [
     'PIL._tkinter_finder',
     'tkinter',
     'tkinter.ttk',
+    'queue',
+    'logging',
+    'socket',
+    'threading',
 ]
 
 # Add platform-specific hidden imports
@@ -57,6 +73,13 @@ if is_windows:
         'vgamepad.win.vigem_client',
         'vgamepad.win.virtual_gamepad',
     ])
+elif is_linux:
+    hiddenimports.extend([
+        'evdev',
+        'evdev.ecodes',
+        'evdev.events',
+        'evdev.uinput',
+    ])
 
 a = Analysis(
     ['main.py'],
@@ -64,7 +87,7 @@ a = Analysis(
     binaries=[],
     datas=all_datas,
     hiddenimports=hiddenimports,
-    hookspath=['utils'],  # Look for hooks in utils directory (hook-vgamepad.py)
+    hookspath=['utils'],  # Look for hooks in utils directory
     hooksconfig={},
     runtime_hooks=[],
     excludes=[],

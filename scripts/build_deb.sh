@@ -9,25 +9,30 @@ PKGNAME=coopad
 BUILD_DIR=$(pwd)
 DIST_DIR=${BUILD_DIR}/dist
 PKG_DIR=${BUILD_DIR}/package
+RELEASES_DIR=${BUILD_DIR}/scripts/releases
 
-echo "Building ${PKGNAME} version ${VERSION}"
+echo "═══════════════════════════════════════════════════════"
+echo "Building ${PKGNAME} version ${VERSION} for Linux"
+echo "═══════════════════════════════════════════════════════"
+echo ""
+
+# Ensure we're in project root
+if [ ! -f "main.py" ]; then
+  echo "Error: main.py not found. Please run from project root."
+  exit 1
+fi
 
 # Ensure venv activated or use system python
 if [ -z "${VIRTUAL_ENV:-}" ]; then
-  echo "Warning: virtualenv not active. It's recommended to activate your venv before building."
+  echo "Warning: virtualenv not active. Using system Python."
 fi
 
-echo "Installing build deps and runtime dependencies..."
-pip install --upgrade pyinstaller Pillow pygame-ce evdev >/dev/null
+echo "Installing build dependencies and runtime dependencies..."
+pip3 install --upgrade --quiet pyinstaller Pillow pygame-ce evdev 2>/dev/null || \
+pip install --upgrade --quiet pyinstaller Pillow pygame-ce evdev
 
-echo "Running PyInstaller..."
-pyinstaller --noconfirm --onefile \
-  --name ${PKGNAME} \
-  --add-data "img:img" \
-  --add-data "gp:gp" \
-  --hidden-import=evdev \
-  --collect-all=evdev \
-  main.py
+echo "Running PyInstaller with spec file..."
+pyinstaller --noconfirm scripts/coopad.spec
 
 echo "Preparing package tree..."
 rm -rf ${PKG_DIR}
@@ -39,9 +44,25 @@ mkdir -p ${PKG_DIR}/usr/share/doc/${PKGNAME}
 mkdir -p ${PKG_DIR}/etc/udev/rules.d
 
 echo "Copying binary, icon, and docs..."
-cp ${DIST_DIR}/${PKGNAME} ${PKG_DIR}/usr/bin/${PKGNAME}
-cp img/src_CooPad.png ${PKG_DIR}/usr/share/pixmaps/${PKGNAME}.png || true
-cp README.md ${PKG_DIR}/usr/share/doc/${PKGNAME}/README.md || true
+if [ -f "${DIST_DIR}/${PKGNAME}" ]; then
+  cp ${DIST_DIR}/${PKGNAME} ${PKG_DIR}/usr/bin/${PKGNAME}
+  chmod 0755 ${PKG_DIR}/usr/bin/${PKGNAME}
+else
+  echo "Error: Binary ${DIST_DIR}/${PKGNAME} not found!"
+  exit 1
+fi
+
+# Copy icon if exists
+if [ -f "img/src_CooPad.png" ]; then
+  cp img/src_CooPad.png ${PKG_DIR}/usr/share/pixmaps/${PKGNAME}.png
+  chmod 0644 ${PKG_DIR}/usr/share/pixmaps/${PKGNAME}.png
+fi
+
+# Copy README if exists
+if [ -f "README.md" ]; then
+  cp README.md ${PKG_DIR}/usr/share/doc/${PKGNAME}/README.md
+  chmod 0644 ${PKG_DIR}/usr/share/doc/${PKGNAME}/README.md
+fi
 
 # Create desktop entry
 cat > ${PKG_DIR}/usr/share/applications/${PKGNAME}.desktop <<'DESKTOP'
@@ -63,43 +84,52 @@ KERNEL=="uinput", MODE="0660", GROUP="input"
 SUBSYSTEM=="uinput", MODE="0660", GROUP="input"
 UDEV
 
-# Create postinst script to set up permissions and install evdev
+# Create postinst script to set up permissions and load uinput module
 cat > ${PKG_DIR}/DEBIAN/postinst <<'POSTINST'
 #!/bin/bash
 set -e
 
 # Reload udev rules
 if command -v udevadm >/dev/null 2>&1; then
-    udevadm control --reload-rules
-    udevadm trigger
+    udevadm control --reload-rules 2>/dev/null || true
+    udevadm trigger 2>/dev/null || true
 fi
 
 # Create input group if it doesn't exist
 if ! getent group input >/dev/null 2>&1; then
-    groupadd -r input
+    groupadd -r input 2>/dev/null || true
 fi
 
 # Load uinput module if not already loaded
 if ! lsmod | grep -q uinput; then
-    modprobe uinput || true
+    modprobe uinput 2>/dev/null || true
 fi
 
-# Install python3-evdev if available via apt
-# This runs as root during package installation
+# Install python3-evdev if available via apt (suppress output)
 if command -v apt-get >/dev/null 2>&1; then
-    apt-get update -qq >/dev/null 2>&1 || true
-    apt-get install -y -qq python3-evdev >/dev/null 2>&1 || true
+    apt-get update -qq 2>/dev/null || true
+    apt-get install -y -qq python3-evdev 2>/dev/null || true
 fi
 
-# Try to install evdev system-wide via pip as fallback (without --user since we're root)
+# Try to install evdev system-wide via pip3 as fallback
 if command -v pip3 >/dev/null 2>&1; then
-    pip3 install -q evdev >/dev/null 2>&1 || true
+    pip3 install -q evdev 2>/dev/null || true
 fi
 
-echo "CooPad installed successfully!"
-echo "To use Host mode, add your user to the 'input' group:"
+echo ""
+echo "╔════════════════════════════════════════════════════════╗"
+echo "║  CooPad installed successfully!                        ║"
+echo "╚════════════════════════════════════════════════════════╝"
+echo ""
+echo "To use Host mode (create virtual gamepad), add your user"
+echo "to the 'input' group:"
+echo ""
 echo "  sudo usermod -aG input \$USER"
+echo ""
 echo "Then log out and back in for changes to take effect."
+echo ""
+echo "Run CooPad from the applications menu or with: coopad"
+echo ""
 
 exit 0
 POSTINST
@@ -113,41 +143,55 @@ Version: ${VERSION}
 Section: utils
 Priority: optional
 Architecture: amd64
-Depends: python3
-Recommends: python3-pip, python3-evdev
-Maintainer: CooPad <no-reply@example.com>
-Description: CooPad remote gamepad (host/client)
+Depends: python3 (>= 3.8), python3-tk
+Recommends: python3-pip, python3-evdev, python3-pygame
+Maintainer: CooPad Team <no-reply@coopad.io>
+Homepage: https://github.com/uozer7050/v5.1
+Description: CooPad - Remote Gamepad over Network
  Cross-platform remote gamepad application that allows you to use a
  gamepad over the network. A client captures gamepad inputs and sends
  them to a host, which creates a virtual gamepad that games can use.
  .
  Features:
   - Cross-platform support (Windows and Linux)
-  - Low latency gameplay
-  - Configurable update rates (30/60/90 Hz)
-  - Real-time network statistics
-  - Automatic platform detection
-  - Automatic dependency installation
+  - Low latency network gameplay
+  - Configurable update rates (30/60/90/120 Hz)
+  - Real-time network statistics and latency monitoring
+  - Automatic platform detection and setup
+  - Virtual gamepad creation (Linux: evdev/uinput, Windows: ViGEm)
+  - Physical gamepad input capture via pygame
 EOF
 
 # Set permissions
-chmod -R 0755 ${PKG_DIR}/usr/bin/${PKGNAME} || true
-chmod 0644 ${PKG_DIR}/etc/udev/rules.d/99-coopad-uinput.rules
+chmod 0755 ${PKG_DIR}/DEBIAN/postinst
+chmod 0644 ${PKG_DIR}/etc/udev/rules.d/99-coopad-uinput.rules || true
 chmod 0644 ${PKG_DIR}/usr/share/applications/${PKGNAME}.desktop || true
-chmod 0644 ${PKG_DIR}/usr/share/pixmaps/${PKGNAME}.png || true
 
 echo "Building .deb package..."
 DEBFILE=${DIST_DIR}/${PKGNAME}_${VERSION}_amd64.deb
 dpkg-deb --build ${PKG_DIR} ${DEBFILE}
 
-echo "Package created: ${DEBFILE}"
+# Create releases directory and copy the package
+echo "Creating releases directory..."
+mkdir -p ${RELEASES_DIR}
+cp ${DEBFILE} ${RELEASES_DIR}/
+
+echo ""
+echo "═══════════════════════════════════════════════════════"
+echo "✓ Package created successfully!"
+echo "═══════════════════════════════════════════════════════"
+echo ""
+echo "Package: ${DEBFILE}"
+echo "Release: ${RELEASES_DIR}/$(basename ${DEBFILE})"
 echo ""
 echo "To install:"
 echo "  sudo dpkg -i ${DEBFILE}"
+echo "  sudo apt-get install -f  # Install dependencies if needed"
 echo ""
 echo "To run:"
 echo "  coopad"
 echo ""
 echo "Or from menu: Applications > Games > CooPad"
+echo ""
 
 exit 0
