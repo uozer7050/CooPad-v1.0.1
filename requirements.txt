@@ -1,8 +1,7 @@
 Pillow
 pygame-ce
-evdev
 # vgamepad is Windows-only (ViGEm). Keep it optional for Windows hosts.
 # If running on Windows and you need vgamepad support, install it separately.
 # nicegui removed per user request; UI uses tkinter/ttk
 
-# Note: tkinter is provided by the system package `python3-tk` on Debian/Ubuntu.
+# Note: tkinter is typically included with Python on Windows.

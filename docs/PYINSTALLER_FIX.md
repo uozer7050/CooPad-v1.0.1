@@ -114,7 +114,7 @@ Since the fix requires:
 2. vgamepad package installed
 3. ViGEm Bus Driver installed
 
-Full testing should be performed on a Windows machine. The fix is designed to gracefully handle cases where vgamepad is not installed (e.g., on Linux).
+Full testing should be performed on a Windows machine.
 
 ## References
 

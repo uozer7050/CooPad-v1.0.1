@@ -20,7 +20,7 @@ CooPad allows you to use a physical gamepad connected to one computer (Client) t
 
 ## 🎮 Features
 
-- **Cross-Platform Support**: Works on Windows and Linux (all combinations supported)
+- **Cross-Platform Support**: Works on Windows
 - **Controller Profiles**: Built-in support for PS4, PS5, Xbox 360, Nintendo Switch (Joy-Con and Pro Controller), and generic controllers
 - **Low Latency**: 1-20ms on local networks, optimized for real-time gaming
 - **Configurable Update Rates**: Choose between 30Hz, 60Hz, or 90Hz for optimal performance
@@ -52,41 +52,6 @@ pip install -r requirements.txt
 
 # Run the application
 python main.py
-```
-
-#### Linux (All Distributions)
-
-**Option 1: AppImage (Recommended for all Linux distros)**
-```bash
-# Download the latest AppImage from Releases
-chmod +x CooPad-*.AppImage
-./CooPad-*.AppImage
-
-# Optional: Move to system path for easy access
-sudo mv CooPad-*.AppImage /usr/local/bin/coopad
-```
-
-**Option 2: .deb package (For Ubuntu/Debian/Mint/Pop!_OS/Zorin/KDE Neon)**
-```bash
-# Download the latest .deb from Releases
-sudo dpkg -i coopad_*.deb
-
-# The package automatically installs dependencies
-# Run from applications menu or terminal
-coopad
-```
-
-**Option 3: Run from source**
-```bash
-# Install system dependencies
-sudo apt update
-sudo apt install python3-tk python3-dev python3-pip
-
-# Install Python dependencies
-pip3 install -r requirements.txt
-
-# Run the application
-python3 main.py
 ```
 
 ### Basic Usage
@@ -142,44 +107,7 @@ For playing over the internet, use a VPN solution:
   - Install the driver before running CooPad
   - Requires administrator privileges to install
 
-### Linux Host Requirements
-- **evdev**: For virtual gamepad creation
-- **uinput module**: Must be loaded and accessible
-
-**For .deb package users:**
-The .deb package automatically:
-- Installs evdev library and dependencies
-- Installs udev rules for uinput access
-- Adds user to 'input' group
-- Loads the uinput module
-
-**For AppImage users:**
-You may need to manually set up permissions:
-```bash
-# Load uinput module
-sudo modprobe uinput
-
-# Add your user to the input group
-sudo usermod -aG input $USER
-
-# Log out and back in for changes to take effect
-```
-
-**Manual setup (if running from source):**
-```bash
-# Install evdev
-pip3 install evdev
-
-# Load uinput module
-sudo modprobe uinput
-
-# Setup permissions
-./scripts/setup_uinput.sh
-
-# Then log out and back in
-```
-
-### Client Requirements (Both Platforms)
+### Client Requirements (Windows)
 - **pygame-ce**: For reading physical gamepad input (pygame-ce 2.4+ required for Python 3.12+)
 - **Physical gamepad**: USB or Bluetooth connected (PS4, PS5, Xbox 360, or generic)
 - Client can run without a physical gamepad (sends test data)
@@ -268,21 +196,6 @@ scripts\build_windows.bat 1.0.0
 .\scripts\build_windows.ps1 1.0.0
 ```
 
-**Linux AppImage:**
-```bash
-./scripts/build_appimage.sh 1.0.0
-```
-
-**Linux .deb package:**
-```bash
-./scripts/build_deb.sh 1.0.0
-```
-
-**Build all formats (Linux: AppImage + .deb, Windows: .exe):**
-```bash
-./scripts/build_all.sh 1.0.0
-```
-
 Output will be in the `dist/` directory.
 
 ## 🐛 Troubleshooting
@@ -292,16 +205,6 @@ Output will be in the `dist/` directory.
 - Install ViGEm Bus Driver from official releases
 - Restart computer after driver installation
 - Run as Administrator if needed
-
-**Linux:**
-- If using .deb package: Dependencies are installed automatically
-- If using AppImage: Ensure uinput module is loaded and user is in input group
-- Check if uinput module is loaded: `lsmod | grep uinput`
-- Load uinput if needed: `sudo modprobe uinput`
-- Check permissions: `ls -l /dev/uinput`
-- Add user to input group: `sudo usermod -aG input $USER`
-- Run setup script: `./scripts/setup_uinput.sh`
-- Or run with sudo: `sudo -E python3 main.py`
 
 ### Client Can't Connect
 - Verify both devices are on the same network
@@ -331,12 +234,9 @@ Output will be in the `dist/` directory.
 - **Version**: Protocol v2
 
 ### Supported Platforms
-- ✅ Linux (Host + Client)
 - ✅ Windows (Host + Client)
-- ✅ All cross-platform combinations work
 
 ### Virtual Gamepad
-- **Linux**: evdev/uinput driver
 - **Windows**: ViGEm Bus Driver (Xbox 360 emulation)
 - **Format**: Full Xbox 360 controller layout
 
