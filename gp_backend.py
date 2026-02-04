@@ -71,6 +71,11 @@ class GpController:
         self.telemetry_cb = telemetry_cb
         self.update_rate = 60  # Default update rate in Hz
         self.controller_profile = 'generic'  # Default controller profile
+        # Network parameters
+        self.client_target_ip = '127.0.0.1'  # Default client target IP
+        self.client_port = 7777  # Default client port
+        self.host_bind_ip = ''  # Default host bind IP (all interfaces)
+        self.host_port = 7777  # Default host port
         HostCls, ClientCls, error = _try_import_real()
         self._host: BaseRunner
         self._client: BaseRunner
@@ -83,7 +88,12 @@ class GpController:
                 
                 def _run(inner_self):
                     try:
-                        h = HostCls(status_cb=inner_self.status_cb, telemetry_cb=inner_self.telemetry_cb)
+                        h = HostCls(
+                            bind_ip=inner_self.parent.host_bind_ip,
+                            port=inner_self.parent.host_port,
+                            status_cb=inner_self.status_cb,
+                            telemetry_cb=inner_self.telemetry_cb
+                        )
                         inner_self.status_cb("✓ Host initialized successfully")
                         h.start()
                         while not inner_self._stop_event.is_set():
@@ -105,9 +115,14 @@ class GpController:
                 
                 def _run(inner_self):
                     try:
-                        c = ClientCls(status_cb=inner_self.status_cb, telemetry_cb=inner_self.telemetry_cb, 
-                                     update_rate=inner_self.parent.update_rate,
-                                     controller_profile=inner_self.parent.controller_profile)
+                        c = ClientCls(
+                            target_ip=inner_self.parent.client_target_ip,
+                            port=inner_self.parent.client_port,
+                            status_cb=inner_self.status_cb,
+                            telemetry_cb=inner_self.telemetry_cb,
+                            update_rate=inner_self.parent.update_rate,
+                            controller_profile=inner_self.parent.controller_profile
+                        )
                         inner_self.status_cb("✓ Client initialized successfully")
                         c.start()
                         while not inner_self._stop_event.is_set():
@@ -149,3 +164,13 @@ class GpController:
     def set_controller_profile(self, profile: str):
         """Set the controller profile ('generic', 'ps4', 'ps5', 'xbox360')."""
         self.controller_profile = profile
+    
+    def set_client_target(self, ip: str, port: int):
+        """Set the client target IP address and port."""
+        self.client_target_ip = ip
+        self.client_port = port
+    
+    def set_host_config(self, bind_ip: str = '', port: int = 7777):
+        """Set the host bind IP address and port."""
+        self.host_bind_ip = bind_ip
+        self.host_port = port
