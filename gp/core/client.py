@@ -46,6 +46,18 @@ class GamepadClient:
         self.status_cb(f'sending to {self.target_ip}:{self.port} id={self.client_id} @ {self.update_rate}Hz')
         self.status_cb(f'using controller profile: {self.controller_profile.name}')
         self._sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        # Explicitly bind to let OS assign a port immediately (prevents WinError 10022 on Windows)
+        # Binding is only needed on Windows; on Unix-like systems, sendto() works without bind
+        import platform
+        if platform.system() == 'Windows':
+            try:
+                # lgtm [py/bind-socket-all-network-interfaces]
+                # Bind to any interface (Windows requirement for UDP client sendto)
+                # Security: This is a client socket that only sends data, not receives
+                self._sock.bind(('', 0))
+            except OSError as e:
+                # If bind fails, log it but continue without explicit bind
+                self.status_cb(f'socket bind failed (continuing anyway): {e}')
         update_interval = 1.0 / self.update_rate
 
         if not PYGAME_AVAILABLE:
@@ -82,10 +94,11 @@ class GamepadClient:
                     axes_map = self.controller_profile.get_axes_mapping()
                     
                     # Read joystick axes based on profile
+                    # Note: Y-axes are inverted (pygame: -1=up/1=down, XInput: -32768=down/32767=up)
                     lx = int(js.get_axis(axes_map['left_x']) * 32767) if js.get_numaxes() > axes_map['left_x'] else 0
-                    ly = int(js.get_axis(axes_map['left_y']) * 32767) if js.get_numaxes() > axes_map['left_y'] else 0
+                    ly = int(-js.get_axis(axes_map['left_y']) * 32767) if js.get_numaxes() > axes_map['left_y'] else 0
                     rx = int(js.get_axis(axes_map['right_x']) * 32767) if js.get_numaxes() > axes_map['right_x'] else 0
-                    ry = int(js.get_axis(axes_map['right_y']) * 32767) if js.get_numaxes() > axes_map['right_y'] else 0
+                    ry = int(-js.get_axis(axes_map['right_y']) * 32767) if js.get_numaxes() > axes_map['right_y'] else 0
                     
                     # Get button mapping from profile
                     button_map = self.controller_profile.get_button_mapping()
