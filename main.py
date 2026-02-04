@@ -530,10 +530,13 @@ For setup help, click the "Platform Help" button.
             
             self._append_status('HOST|Starting host...')
             try:
-                _ = int(self.port_entry.get())
+                port = int(self.port_entry.get())
             except Exception:
-                pass
-            # GpController start_host has no parameters — call directly
+                port = 7777
+                self._append_status(f'HOST|Invalid port, using default: {port}')
+            
+            # Configure host before starting
+            self._gp.set_host_config(bind_ip='', port=port)
             self._gp.start_host()
             self._host_running = True
             self.host_btn.config(text='Stop Host')
@@ -554,12 +557,19 @@ For setup help, click the "Platform Help" button.
                 self._append_status(f"CLIENT|  Will send test data (no physical gamepad)")
             
             self._append_status('CLIENT|Starting client...')
-            target = self.ip_entry.get()
+            target_ip = self.ip_entry.get().strip()
+            if not target_ip:
+                target_ip = '127.0.0.1'
+                self._append_status(f'CLIENT|No IP provided, using default: {target_ip}')
+            
             try:
-                _ = int(self.port_entry.get())
+                port = int(self.port_entry.get())
             except Exception:
-                pass
-            # GpController start_client has no parameters — call directly
+                port = 7777
+                self._append_status(f'CLIENT|Invalid port, using default: {port}')
+            
+            # Configure client before starting
+            self._gp.set_client_target(target_ip, port)
             self._gp.start_client()
             self._client_running = True
             self.client_btn.config(text='Stop Client')
