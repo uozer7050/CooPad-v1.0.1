@@ -21,20 +21,25 @@ class SecurityConfig:
     """Configuration for security features."""
     # Rate limiting
     rate_limit_window: float = 1.0  # seconds
-    rate_limit_max: int = 120  # max packets per second per client
-    rate_limit_burst: int = 20  # max burst packets
+    rate_limit_max: int = 300  # max packets per second per client
+    rate_limit_burst: int = 80  # max burst packets (VPN traffic can be bursty)
     
     # IP-based limits
-    ip_rate_limit_max: int = 200  # max packets per second per IP
-    max_clients_per_ip: int = 3  # max simultaneous clients from one IP
+    ip_rate_limit_max: int = 600  # max packets per second per IP
+    max_clients_per_ip: int = 4  # max simultaneous clients from one IP (XInput limit)
     
     # Blocking
-    auto_block_threshold: int = 5  # violations before auto-block
+    auto_block_threshold: int = 10  # violations before auto-block
     block_duration: float = 300.0  # seconds (5 minutes)
     
     # Timestamp validation
-    max_timestamp_age: float = 5.0  # seconds
-    max_timestamp_future: float = 1.0  # seconds
+    # IMPORTANT: perf_counter_ns() is a machine-local monotonic clock and NOT
+    # synchronised across different computers.  Enabling this check will cause
+    # every remote packet to be rejected.  Keep disabled unless both peers run
+    # on the same physical machine (localhost testing).
+    enable_timestamp_validation: bool = False
+    max_timestamp_age: float = 30.0  # seconds – generous for VPN / WAN jitter
+    max_timestamp_future: float = 15.0  # seconds – clock-skew tolerance
     
     # Whitelisting
     enable_whitelist: bool = False
@@ -170,9 +175,12 @@ class SecurityManager:
                 return False, "Client is blocked"
         
         # Validate timestamp to prevent replay attacks
-        if not self._validate_timestamp(timestamp_ns):
-            self._record_violation(client_id, ip_address, "invalid_timestamp")
-            return False, "Invalid timestamp"
+        # NOTE: Disabled by default because perf_counter_ns is machine-local
+        # and will always fail for remote (VPN/LAN) connections.
+        if self.config.enable_timestamp_validation:
+            if not self._validate_timestamp(timestamp_ns):
+                self._record_violation(client_id, ip_address, "invalid_timestamp")
+                return False, "Invalid timestamp"
         
         # Check IP-based rate limit
         if not self._check_ip_rate_limit(ip_address):

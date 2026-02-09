@@ -139,6 +139,7 @@ def test_timestamp_validation():
     config = SecurityConfig(
         rate_limit_max=100,
         rate_limit_burst=50,
+        enable_timestamp_validation=True,  # opt-in (disabled by default for remote)
         max_timestamp_age=2.0,  # 2 seconds max age
         max_timestamp_future=0.5  # 0.5 seconds max future
     )

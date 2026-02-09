@@ -52,6 +52,11 @@ class GamepadClient:
         self.status_cb(f'sending to {self.target_ip}:{self.port} id={self.client_id} @ {self.update_rate}Hz')
         self.status_cb(f'using controller profile: {self.controller_profile.name}')
         self._sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        # Increase send buffer for VPN tunnels (256 KB)
+        try:
+            self._sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 262144)
+        except Exception:
+            pass
         # Explicitly bind to let OS assign a port immediately (prevents WinError 10022 on Windows)
         # Binding is only needed on Windows; on Unix-like systems, sendto() works without bind
         import platform

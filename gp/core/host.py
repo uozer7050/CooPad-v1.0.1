@@ -76,7 +76,7 @@ class GamepadHost:
 
         # Legacy rate limiting (kept for backward compatibility)
         self._rate_limit_window = 1.0
-        self._rate_limit_max = 150
+        self._rate_limit_max = 300
         self._client_packet_counts = {}
 
     def start(self):
@@ -174,9 +174,9 @@ class GamepadHost:
         return gp
 
     def _cleanup_stale_clients(self):
-        """Remove clients that have timed out (no packets for 5+ seconds)."""
+        """Remove clients that have timed out (no packets for 10+ seconds)."""
         now = time.time()
-        stale = [cid for cid, info in self._clients.items() if now - info['last_time'] > 5.0]
+        stale = [cid for cid, info in self._clients.items() if now - info['last_time'] > 10.0]
         for cid in stale:
             info = self._clients[cid]
             if info['gamepad'] is not None:
@@ -210,6 +210,11 @@ class GamepadHost:
         self.status_cb(f'listening on {self.bind_ip or "*"}:{self.port} ({mode_str} mode)')
         self._sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self._sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # Increase receive buffer for bursty VPN traffic (256 KB)
+        try:
+            self._sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 262144)
+        except Exception:
+            pass
         self._sock.bind((self.bind_ip, self.port))
 
         if not self.multi_gamepad:
@@ -218,7 +223,7 @@ class GamepadHost:
         while not self._stop.is_set():
             try:
                 self._sock.settimeout(0.5)
-                data, addr = self._sock.recvfrom(1024)
+                data, addr = self._sock.recvfrom(2048)
             except socket.timeout:
                 if self.multi_gamepad:
                     self._cleanup_stale_clients()

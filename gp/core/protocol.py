@@ -5,7 +5,7 @@ from dataclasses import dataclass
 PACKET_FMT = '<B I H H B B h h h h Q'  # matches protocol.md
 PACKET_SIZE = struct.calcsize(PACKET_FMT)
 PROTOCOL_VERSION = 2
-MAX_PACKET_SIZE = 1024  # Maximum allowed packet size
+MAX_PACKET_SIZE = 2048  # Maximum allowed packet size (room for future extensions)
 MIN_PACKET_SIZE = PACKET_SIZE  # Minimum valid packet size
 
 
