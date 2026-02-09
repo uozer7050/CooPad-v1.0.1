@@ -32,8 +32,8 @@ class ControllerProfile:
             'left_y': 1,
             'right_x': 2,
             'right_y': 3,
-            'left_trigger': None,
-            'right_trigger': None,
+            'left_trigger': 4,
+            'right_trigger': 5,
         }
     
     def get_button_mapping(self):
@@ -79,6 +79,18 @@ class ControllerProfile:
     def uses_hat_for_dpad(self):
         """Returns True if this controller uses hat for D-pad instead of buttons."""
         return False
+    
+    def invert_y_axes(self):
+        """
+        Returns True if Y axes need to be inverted (multiplied by -1) when
+        converting from pygame to XInput convention.
+        
+        Most controllers report Y axis as Up→Down (-1=Up, +1=Down), which
+        needs inversion for XInput (positive=up). Joy-Cons report Y axis
+        as Down→Up (-1=Down, +1=Up), which already matches XInput convention
+        and should NOT be inverted.
+        """
+        return True
 
 
 class PS4ControllerProfile(ControllerProfile):
@@ -209,34 +221,35 @@ class PS5ControllerProfile(ControllerProfile):
 
 
 class Xbox360ControllerProfile(ControllerProfile):
-    """Xbox 360 controller profile (pygame 1.x/2.x)."""
+    """Xbox 360 controller profile (pygame 2.x / pygame-ce)."""
     
     def __init__(self):
         super().__init__()
         self.name = "Xbox 360 Controller"
-        self.description = "Xbox 360 Controller (5 axes, 10 buttons, 1 hat)"
+        self.description = "Xbox 360 Controller (6 axes, 11 buttons, 1 hat)"
     
     def get_axes_mapping(self):
         """
-        Xbox 360 Controller axes:
+        Xbox 360 Controller axes (pygame 2.x):
             Axis 0: Left Stick X (Left -> Right)
             Axis 1: Left Stick Y (Up -> Down)
-            Axis 2: Triggers (RT -> LT, combined axis)
-            Axis 3: Right Stick Y (Up -> Down)
-            Axis 4: Right Stick X (Left -> Right)
+            Axis 2: Left Trigger (Out -> In)
+            Axis 3: Right Stick X (Left -> Right)
+            Axis 4: Right Stick Y (Up -> Down)
+            Axis 5: Right Trigger (Out -> In)
         """
         return {
             'left_x': 0,
             'left_y': 1,
-            'right_x': 4,
-            'right_y': 3,
-            'left_trigger': None,  # Combined on axis 2
-            'right_trigger': None,  # Combined on axis 2
+            'right_x': 3,
+            'right_y': 4,
+            'left_trigger': 2,
+            'right_trigger': 5,
         }
     
     def get_button_mapping(self):
         """
-        Xbox 360 Controller buttons:
+        Xbox 360 Controller buttons (pygame 2.x):
             Button 0: A
             Button 1: B
             Button 2: X
@@ -247,6 +260,7 @@ class Xbox360ControllerProfile(ControllerProfile):
             Button 7: Start
             Button 8: Left Stick In
             Button 9: Right Stick In
+            Button 10: Guide
         """
         return {
             0: 0x1000,    # A
@@ -264,32 +278,6 @@ class Xbox360ControllerProfile(ControllerProfile):
     def uses_hat_for_dpad(self):
         """Xbox 360 controller uses hat for D-pad."""
         return True
-    
-    def get_trigger_from_axis(self, axis_2_value):
-        """
-        Extract left and right trigger values from combined axis 2.
-        
-        Args:
-            axis_2_value: Float value from axis 2 (-1.0 to 1.0)
-                         -1.0 = LT fully pressed
-                         0.0 = Neither pressed
-                         1.0 = RT fully pressed
-        
-        Returns:
-            tuple: (left_trigger, right_trigger) in range 0-255
-        """
-        if axis_2_value < 0:
-            # Left trigger pressed
-            lt = int(abs(axis_2_value) * 255)
-            rt = 0
-        elif axis_2_value > 0:
-            # Right trigger pressed
-            lt = 0
-            rt = int(axis_2_value * 255)
-        else:
-            lt = 0
-            rt = 0
-        return lt, rt
 
 
 class NintendoSwitchJoyConProfile(ControllerProfile):
@@ -390,6 +378,14 @@ class NintendoSwitchJoyConProfile(ControllerProfile):
             14: 0x0100,   # L/R → Left Shoulder (same as button 4)
             15: 0x0200,   # ZL/ZR → Right Shoulder (same as button 5)
         }
+    
+    def invert_y_axes(self):
+        """
+        Joy-Con Y axis is reported as Down→Up (-1=Down, +1=Up) by pygame,
+        which already matches XInput convention (positive=up).
+        No inversion needed.
+        """
+        return False
 
 
 class NintendoSwitchProControllerProfile(ControllerProfile):

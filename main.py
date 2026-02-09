@@ -359,7 +359,7 @@ class App(tk.Tk):
         info_text.pack(fill='both', expand=True)
         info_text.insert('1.0', '''CooPad - Remote Gamepad over Network
 
-Version: 5.1
+Version: 1.0.2
 License: Open Source
 
 CooPad allows you to use a gamepad over a network connection. The client captures gamepad inputs and sends them to the host, which creates a virtual gamepad that games can use.

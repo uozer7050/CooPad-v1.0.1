@@ -1,11 +1,16 @@
 import socket
 import threading
 import time
+import os
 import random
 from typing import Optional
 
 from .protocol import make_state_from_inputs, pack, PROTOCOL_VERSION
 from .controller_profiles import get_profile
+
+# Enable joystick input even when window is not focused
+# Must be set BEFORE pygame.init()
+os.environ['SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS'] = '1'
 
 try:
     import pygame
@@ -72,6 +77,7 @@ class GamepadClient:
             return
 
         # initialize pygame joystick
+        js = None
         try:
             pygame.init()
             pygame.joystick.init()
@@ -79,29 +85,45 @@ class GamepadClient:
                 self.status_cb('no joystick found; sending heartbeats')
             else:
                 self.status_cb(f'joysticks: {pygame.joystick.get_count()}')
+                # Create joystick ONCE and reuse — creating every frame
+                # causes the old object to be garbage-collected (potentially
+                # closing the device briefly) and wastes resources.
+                js = pygame.joystick.Joystick(0)
+                # In pygame 2.x, joysticks are automatically opened on creation.
+                # js.init() is deprecated but harmless.
         except Exception as e:
             self.status_cb(f'pygame init error: {e}')
+
+        # Pre-fetch profile settings
+        axes_map = self.controller_profile.get_axes_mapping()
+        button_map = self.controller_profile.get_button_mapping()
+        use_hat_dpad = self.controller_profile.uses_hat_for_dpad()
+        y_mult = -1 if self.controller_profile.invert_y_axes() else 1
 
         while not self._stop.is_set():
             try:
                 send_time = time.perf_counter()
                 pygame.event.pump()
-                if pygame.joystick.get_count() > 0:
+
+                # Hot-plug: check if joystick appeared or disappeared
+                joy_count = pygame.joystick.get_count()
+                if js is None and joy_count > 0:
                     js = pygame.joystick.Joystick(0)
-                    js.init()
-                    
-                    # Get axes mapping from profile
-                    axes_map = self.controller_profile.get_axes_mapping()
+                    self.status_cb(f'joystick connected: {js.get_name()}')
+                elif js is not None and joy_count == 0:
+                    js = None
+                    self.status_cb('joystick disconnected')
+
+                if js is not None:
+                    num_axes = js.get_numaxes()
                     
                     # Read joystick axes based on profile
-                    # Note: Y-axes are inverted (pygame: -1=up/1=down, XInput: -32768=down/32767=up)
-                    lx = int(js.get_axis(axes_map['left_x']) * 32767) if js.get_numaxes() > axes_map['left_x'] else 0
-                    ly = int(-js.get_axis(axes_map['left_y']) * 32767) if js.get_numaxes() > axes_map['left_y'] else 0
-                    rx = int(js.get_axis(axes_map['right_x']) * 32767) if js.get_numaxes() > axes_map['right_x'] else 0
-                    ry = int(-js.get_axis(axes_map['right_y']) * 32767) if js.get_numaxes() > axes_map['right_y'] else 0
-                    
-                    # Get button mapping from profile
-                    button_map = self.controller_profile.get_button_mapping()
+                    # Y multiplier: -1 for standard (pygame Up→Down needs inversion),
+                    #                +1 for Joy-Con (pygame Down→Up already correct)
+                    lx = int(js.get_axis(axes_map['left_x']) * 32767) if num_axes > axes_map['left_x'] else 0
+                    ly = int(y_mult * js.get_axis(axes_map['left_y']) * 32767) if num_axes > axes_map['left_y'] else 0
+                    rx = int(js.get_axis(axes_map['right_x']) * 32767) if num_axes > axes_map['right_x'] else 0
+                    ry = int(y_mult * js.get_axis(axes_map['right_y']) * 32767) if num_axes > axes_map['right_y'] else 0
                     
                     # Map buttons using profile
                     buttons = 0
@@ -110,7 +132,7 @@ class GamepadClient:
                             buttons |= button_map[b]
                     
                     # Check for DPad on hat if profile uses it
-                    if self.controller_profile.uses_hat_for_dpad() and js.get_numhats() > 0:
+                    if use_hat_dpad and js.get_numhats() > 0:
                         hat = js.get_hat(0)
                         # hat returns (x, y) where x: -1=left, 0=center, 1=right; y: -1=down, 0=center, 1=up
                         if hat[1] == 1:  # up
@@ -125,26 +147,18 @@ class GamepadClient:
                     # Handle triggers based on profile
                     lt = 0
                     rt = 0
-                    if axes_map['left_trigger'] is not None and js.get_numaxes() > axes_map['left_trigger']:
-                        # Trigger on separate axis (PS4/PS5 style)
+                    if axes_map['left_trigger'] is not None and num_axes > axes_map['left_trigger']:
+                        # Trigger on separate axis
                         # pygame typically returns -1.0 (not pressed) to 1.0 (fully pressed)
                         # Convert to 0 (not pressed) to 255 (fully pressed)
                         lt_raw = js.get_axis(axes_map['left_trigger'])
                         lt = int((lt_raw + 1.0) * 127.5)
                         lt = max(0, min(255, lt))
                     
-                    if axes_map['right_trigger'] is not None and js.get_numaxes() > axes_map['right_trigger']:
-                        # Trigger on separate axis (PS4/PS5 style)
-                        # pygame typically returns -1.0 (not pressed) to 1.0 (fully pressed)
-                        # Convert to 0 (not pressed) to 255 (fully pressed)
+                    if axes_map['right_trigger'] is not None and num_axes > axes_map['right_trigger']:
                         rt_raw = js.get_axis(axes_map['right_trigger'])
                         rt = int((rt_raw + 1.0) * 127.5)
                         rt = max(0, min(255, rt))
-                    
-                    # Special case for Xbox 360: combined trigger axis
-                    if hasattr(self.controller_profile, 'get_trigger_from_axis') and js.get_numaxes() > 2:
-                        axis_2_value = js.get_axis(2)
-                        lt, rt = self.controller_profile.get_trigger_from_axis(axis_2_value)
                 else:
                     buttons = 0
                     lx = ly = rx = ry = 0
