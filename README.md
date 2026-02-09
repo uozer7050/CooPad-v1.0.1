@@ -31,7 +31,7 @@ CooPad allows you to use a physical gamepad connected to one computer (Client) t
 
 ## 🫀 NEW v1.0.2 UPDATE
 
-- **Multi‑Gamepad Co‑op: Add up to 4 remote players as separate virtual controllers** : Adds optional Multi‑Gamepad Co‑op mode so remote players appear as independent virtual controllers on the Host, preventing input mixing during local co‑op play.
+- **Multi‑Gamepad Co‑op: Add up to 4 remote players as separate virtual controllers** : Adds optional new mode so remote players appear as independent virtual controllers on the Host, preventing input mixing during local co‑op play.
 - **Automatic ViGEmBus recovery:** Host startup failures caused by ViGEmBus initialization now automatically retry within 2 seconds and show feedback in the console.
 - **Controller mapping fixes:** Improved controller mapping stability across different controller types.
 - **Improved signal stability:** Users are now required to select a controller profile and the signal update rate, ensuring a smoother and more reliable experience.
