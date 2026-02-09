@@ -20,10 +20,11 @@ except Exception:
 
 
 class GamepadClient:
-    def __init__(self, target_ip: str = '127.0.0.1', port: int = 7777, client_id: int = None, status_cb=None, telemetry_cb=None, update_rate: int = 60, controller_profile: str = 'generic'):
+    def __init__(self, target_ip: str = '127.0.0.1', port: int = 7777, client_id: int = None, status_cb=None, telemetry_cb=None, update_rate: int = 60, controller_profile: str = 'generic', joystick_index: int = 0):
         self.target_ip = target_ip
         self.port = port
         self.client_id = client_id if client_id is not None else random.getrandbits(32)
+        self.joystick_index = joystick_index
         self._sock: Optional[socket.socket] = None
         self._thread: Optional[threading.Thread] = None
         self._stop = threading.Event()
@@ -85,12 +86,13 @@ class GamepadClient:
                 self.status_cb('no joystick found; sending heartbeats')
             else:
                 self.status_cb(f'joysticks: {pygame.joystick.get_count()}')
-                # Create joystick ONCE and reuse — creating every frame
-                # causes the old object to be garbage-collected (potentially
-                # closing the device briefly) and wastes resources.
-                js = pygame.joystick.Joystick(0)
-                # In pygame 2.x, joysticks are automatically opened on creation.
-                # js.init() is deprecated but harmless.
+                # Use the configured joystick index
+                idx = self.joystick_index
+                if idx >= pygame.joystick.get_count():
+                    self.status_cb(f'joystick index {idx} not available, falling back to 0')
+                    idx = 0
+                js = pygame.joystick.Joystick(idx)
+                self.status_cb(f'using joystick #{idx}: {js.get_name()}')
         except Exception as e:
             self.status_cb(f'pygame init error: {e}')
 

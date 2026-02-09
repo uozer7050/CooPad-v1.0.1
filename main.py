@@ -289,6 +289,7 @@ class App(tk.Tk):
 
         make_tab_button('Host')
         make_tab_button('Client')
+        make_tab_button('Monitor')
         make_tab_button('Settings')
 
         # content frames
@@ -296,8 +297,9 @@ class App(tk.Tk):
         tabs_frame.pack(fill='both', expand=True, padx=12, pady=(0,0))
         host_tab = ttk.Frame(tabs_frame)
         client_tab = ttk.Frame(tabs_frame)
+        monitor_tab = ttk.Frame(tabs_frame)
         settings_tab = ttk.Frame(tabs_frame)
-        self._content_frames = {'Host': host_tab, 'Client': client_tab, 'Settings': settings_tab}
+        self._content_frames = {'Host': host_tab, 'Client': client_tab, 'Monitor': monitor_tab, 'Settings': settings_tab}
 
         # Host content
         ttk.Label(host_tab, text='Host Status', font=(None, 12, 'bold')).pack(anchor='nw', padx=8, pady=(8,4))
@@ -324,6 +326,51 @@ class App(tk.Tk):
         self.client_box = tk.Text(client_tab, wrap='word', height=10, font=self._mono_font)
         self.client_box.pack(fill='both', expand=True, padx=8, pady=8)
         self.client_box.config(state='disabled')
+
+        # ======== Monitor tab (multi-gamepad player dashboard) ========
+        monitor_header = tk.Frame(monitor_tab, bg='#111214')
+        monitor_header.pack(fill='x', padx=0, pady=(0, 8))
+        tk.Label(monitor_header, text='\U0001f3ae  Player Monitor', font=('Segoe UI', 14, 'bold'),
+                 fg='#ffffff', bg='#111214').pack(side='left', padx=12, pady=10)
+        self._monitor_status_label = tk.Label(
+            monitor_header, text='Multi-Gamepad: OFF', font=('Segoe UI', 10),
+            fg='#888888', bg='#111214')
+        self._monitor_status_label.pack(side='right', padx=12, pady=10)
+
+        # Scrollable player cards area
+        monitor_canvas_frame = tk.Frame(monitor_tab, bg=self._palette['frame'])
+        monitor_canvas_frame.pack(fill='both', expand=True, padx=0, pady=0)
+        self._monitor_canvas = tk.Canvas(monitor_canvas_frame, bg=self._palette['frame'],
+                                         highlightthickness=0, bd=0)
+        self._monitor_scrollbar = ttk.Scrollbar(monitor_canvas_frame, orient='vertical',
+                                                 command=self._monitor_canvas.yview)
+        self._monitor_cards_frame = tk.Frame(self._monitor_canvas, bg=self._palette['frame'])
+        self._monitor_cards_frame.bind('<Configure>',
+            lambda e: self._monitor_canvas.configure(scrollregion=self._monitor_canvas.bbox('all')))
+        self._monitor_canvas.create_window((0, 0), window=self._monitor_cards_frame, anchor='nw')
+        self._monitor_canvas.configure(yscrollcommand=self._monitor_scrollbar.set)
+        self._monitor_canvas.pack(side='left', fill='both', expand=True)
+        self._monitor_scrollbar.pack(side='right', fill='y')
+
+        # Empty state label
+        self._monitor_empty_label = tk.Label(
+            self._monitor_cards_frame,
+            text='No players connected.\n\nEnable Multi-Gamepad Co-op in Settings\nand start the Host to see connected players here.',
+            font=('Segoe UI', 11), fg='#555555', bg=self._palette['frame'],
+            justify='center'
+        )
+        self._monitor_empty_label.pack(expand=True, pady=80)
+
+        # Dict to track player card widgets: client_id -> {frame, name_lbl, ...}
+        self._player_cards = {}
+
+        # Host event log at the bottom of monitor tab
+        tk.Label(monitor_tab, text='Connection Events', font=('Segoe UI', 10, 'bold'),
+                 fg='#aaaaaa', bg=self._palette['frame'], anchor='w').pack(fill='x', padx=12, pady=(8, 2))
+        self._monitor_log = tk.Text(monitor_tab, wrap='word', height=5, font=self._mono_font,
+                                     bg=self._palette['text_bg'], fg=self._palette['text_fg'])
+        self._monitor_log.pack(fill='x', padx=12, pady=(0, 8))
+        self._monitor_log.config(state='disabled')
 
         # Settings content
         ttk.Label(settings_tab, text='Network Settings', font=(None, 12, 'bold')).pack(anchor='nw', padx=8, pady=(8,4))
@@ -380,6 +427,36 @@ class App(tk.Tk):
         
         ttk.Label(controller_frame, text='Note: Change takes effect when client restarts.', 
                  font=(None, 8), foreground='#888888').pack(anchor='w', pady=(8,0))
+
+        # --- Multi-Gamepad Co-op setting ---
+        ttk.Separator(settings_tab, orient='horizontal').pack(fill='x', padx=8, pady=12)
+
+        multi_gp_frame = ttk.Frame(settings_tab)
+        multi_gp_frame.pack(fill='x', padx=8, pady=12)
+        ttk.Label(multi_gp_frame, text='Multi-Gamepad Co-op:', font=(None, 10, 'bold')).pack(anchor='w', pady=(0,4))
+        ttk.Label(multi_gp_frame, text='Allow up to 4 remote players to connect as separate virtual controllers for local co-op games.',
+                 font=(None, 9), foreground='#888888', wraplength=500).pack(anchor='w', pady=(0,8))
+
+        self._multi_gp_var = tk.BooleanVar(value=self._config.get('multi_gamepad', False))
+        self._multi_gp_check = ttk.Checkbutton(
+            multi_gp_frame, text='Enable Multi-Gamepad Co-op Mode',
+            variable=self._multi_gp_var,
+            command=self._on_multi_gamepad_toggle
+        )
+        self._multi_gp_check.pack(anchor='w', pady=4)
+
+        self._multi_gp_status = tk.Label(
+            multi_gp_frame,
+            text='Enabled' if self._multi_gp_var.get() else 'Disabled',
+            font=(None, 9, 'bold'),
+            fg='#22c55e' if self._multi_gp_var.get() else '#888888',
+            bg=self._palette['frame']
+        )
+        self._multi_gp_status.pack(anchor='w', pady=(2,0))
+
+        # Apply saved multi-gamepad state to backend
+        if self._multi_gp_var.get():
+            self._gp.set_multi_gamepad(True)
 
         # --- Confirm & Save button ---
         ttk.Separator(settings_tab, orient='horizontal').pack(fill='x', padx=8, pady=12)
@@ -489,6 +566,7 @@ For setup help, click the "Platform Help" button.
             try:
                 self.host_box.config(bg=pal['text_bg'], fg=pal['text_fg'], insertbackground=pal['text_fg'])
                 self.client_box.config(bg=pal['text_bg'], fg=pal['text_fg'], insertbackground=pal['text_fg'])
+                self._monitor_log.config(bg=pal['text_bg'], fg=pal['text_fg'], insertbackground=pal['text_fg'])
             except Exception:
                 pass
         except Exception:
@@ -507,9 +585,13 @@ For setup help, click the "Platform Help" button.
                 if name == 'Host':
                     self.host_controls.pack(fill='x', padx=12)
                     self.client_controls.pack_forget()
-                else:
+                elif name == 'Client':
                     self.client_controls.pack(fill='x', padx=12)
                     self.host_controls.pack_forget()
+                else:
+                    # Monitor & Settings — show host controls for convenience
+                    self.host_controls.pack(fill='x', padx=12)
+                    self.client_controls.pack_forget()
             except Exception:
                 pass
             # update buttons
@@ -551,7 +633,20 @@ For setup help, click the "Platform Help" button.
         try:
             if text.startswith('HOST|'):
                 t = text.split('|', 1)[1].strip()
-                # Parse telemetry: "Latency: X.Xms | Jitter: X.Xms | Rate: XXHz | seq=XXX"
+                # Check for multi-gamepad telemetry messages
+                # Format: HOST|PLAYER_STATS|client_id|name|color|slot|latency|jitter|rate|seq
+                # Format: HOST|PLAYER_JOIN|client_id|name|color|slot
+                # Format: HOST|PLAYER_LEAVE|client_id|name|color|slot
+                if t.startswith('PLAYER_STATS|'):
+                    self._handle_player_stats(t)
+                    return
+                elif t.startswith('PLAYER_JOIN|'):
+                    self._handle_player_join(t)
+                    return
+                elif t.startswith('PLAYER_LEAVE|'):
+                    self._handle_player_leave(t)
+                    return
+                # Legacy single-mode telemetry
                 parts = [p.strip() for p in t.split('|')]
                 for part in parts:
                     if part.startswith('Latency:'):
@@ -559,7 +654,6 @@ For setup help, click the "Platform Help" button.
                     elif part.startswith('Jitter:'):
                         self.host_jitter_var.set(part)
                     elif part.startswith('Rate:'):
-                        # Extract rate and sequence
                         rate_part = part.split('seq=')[0].strip()
                         self.host_packets_var.set(rate_part)
                         if 'seq=' in part:
@@ -567,7 +661,6 @@ For setup help, click the "Platform Help" button.
                             self.host_packets_var.set(f'{rate_part} | Seq: {seq}')
             elif text.startswith('CLIENT|'):
                 t = text.split('|', 1)[1].strip()
-                # Parse telemetry: "Latency: X.Xms | Jitter: X.Xms | Rate: XXHz | seq=XXX"
                 parts = [p.strip() for p in t.split('|')]
                 for part in parts:
                     if part.startswith('Latency:'):
@@ -575,7 +668,6 @@ For setup help, click the "Platform Help" button.
                     elif part.startswith('Jitter:'):
                         self.client_jitter_var.set(part)
                     elif part.startswith('Rate:'):
-                        # Extract rate and sequence
                         rate_part = part.split('seq=')[0].strip()
                         self.client_packets_var.set(rate_part)
                         if 'seq=' in part:
@@ -612,6 +704,10 @@ For setup help, click the "Platform Help" button.
             
             # Configure host before starting
             self._gp.set_host_config(bind_ip='', port=port)
+            self._gp.set_multi_gamepad(self._multi_gp_var.get())
+            if self._multi_gp_var.get():
+                self._append_status('HOST|Multi-Gamepad Co-op mode ENABLED (up to 4 controllers)')
+                self._monitor_status_label.config(text='Multi-Gamepad: ON', fg='#22c55e')
             self._gp.start_host()
             self._host_running = True
             self.host_btn.config(text='Stop Host')
@@ -790,12 +886,14 @@ For more information, see README.md
     # ---------- Settings helpers ----------
 
     def _confirm_settings(self):
-        """User explicitly confirms their settings – persist and unlock Host/Client."""
+        """User explicitly confirms their settings - persist and unlock Host/Client."""
         rate = self.update_rate_var.get()
         display_name = self.controller_profile_var.get()
+        multi_gp = self._multi_gp_var.get()
 
         # Apply to backend
         self._gp.set_update_rate(rate)
+        self._gp.set_multi_gamepad(multi_gp)
         try:
             from gp.core.controller_profiles import get_profile_by_display_name
             profile_key = get_profile_by_display_name(display_name)
@@ -809,6 +907,7 @@ For more information, see README.md
         self._config['update_rate'] = rate
         self._config['controller_profile'] = profile_key
         self._config['controller_profile_display'] = display_name
+        self._config['multi_gamepad'] = multi_gp
         save_config(self._config)
 
         # Update UI feedback
@@ -816,7 +915,13 @@ For more information, see README.md
         self._settings_status_label.config(fg='#22c55e')
         self._confirm_btn.config(text='  ✓  Settings Saved  ', bg='#1a6b2e')
 
-        self._append_status(f'Settings confirmed → {rate} Hz / {display_name}')
+        # Update monitor status
+        if multi_gp:
+            self._monitor_status_label.config(text='Multi-Gamepad: ON', fg='#22c55e')
+        else:
+            self._monitor_status_label.config(text='Multi-Gamepad: OFF', fg='#888888')
+
+        self._append_status(f'Settings confirmed \u2192 {rate} Hz / {display_name} / Multi-Gamepad: {"ON" if multi_gp else "OFF"}')
 
     def _prompt_settings_first(self):
         """Show a dialog telling the user to configure settings first."""
@@ -849,6 +954,203 @@ For more information, see README.md
             self._append_status(f'CLIENT|Controller profile changed to {display_name}')
         except Exception as e:
             self._append_status(f'CLIENT|Error changing controller profile: {e}')
+
+    # =====================  Multi-Gamepad Co-op  =====================
+
+    def _on_multi_gamepad_toggle(self):
+        """Called when the multi-gamepad checkbox is clicked."""
+        enabled = self._multi_gp_var.get()
+        if enabled:
+            # Show confirmation dialog
+            answer = messagebox.askyesno(
+                'Enable Multi-Gamepad Co-op',
+                'Are you sure you want to enable Multi-Gamepad Co-op mode?\n\n'
+                'This will have the following effects:\n\n'
+                '\u2022 The Host will create up to 4 separate virtual Xbox 360\n'
+                '   controllers (one per connected client).\n\n'
+                '\u2022 Each remote player\u2019s inputs will be routed to their own\n'
+                '   virtual controller, so inputs never mix between players.\n\n'
+                '\u2022 The Host machine must also have this option enabled.\n'
+                '   Both sides need to confirm settings before starting.\n\n'
+                '\u2022 Windows XInput supports a maximum of 4 controllers.\n\n'
+                '\u2022 ViGEmBus driver must be installed on the Host machine.\n\n'
+                'Continue?',
+                icon='warning'
+            )
+            if not answer:
+                self._multi_gp_var.set(False)
+                return
+            self._multi_gp_status.config(text='Enabled', fg='#22c55e')
+            self._gp.set_multi_gamepad(True)
+            self._monitor_status_label.config(text='Multi-Gamepad: ON', fg='#22c55e')
+            self._append_status('HOST|Multi-Gamepad Co-op mode enabled')
+        else:
+            self._multi_gp_status.config(text='Disabled', fg='#888888')
+            self._gp.set_multi_gamepad(False)
+            self._monitor_status_label.config(text='Multi-Gamepad: OFF', fg='#888888')
+            self._append_status('HOST|Multi-Gamepad Co-op mode disabled')
+
+    # =====================  Player Card Management  =====================
+
+    def _handle_player_join(self, raw: str):
+        """Handle PLAYER_JOIN|client_id|name|color|slot telemetry."""
+        try:
+            parts = raw.split('|')
+            # PLAYER_JOIN|client_id|name|color|slot
+            cid = int(parts[1])
+            name = parts[2]
+            color = parts[3]
+            slot = int(parts[4])
+            self._create_player_card(cid, name, color, slot)
+            self._log_monitor_event(f'\u25b6 Player {slot} "{name}" connected', color)
+        except Exception:
+            pass
+
+    def _handle_player_leave(self, raw: str):
+        """Handle PLAYER_LEAVE|client_id|name|color|slot telemetry."""
+        try:
+            parts = raw.split('|')
+            cid = int(parts[1])
+            name = parts[2]
+            color = parts[3]
+            slot = int(parts[4])
+            self._remove_player_card(cid)
+            self._log_monitor_event(f'\u25a0 Player {slot} "{name}" disconnected', '#888888')
+        except Exception:
+            pass
+
+    def _handle_player_stats(self, raw: str):
+        """Handle PLAYER_STATS|client_id|name|color|slot|latency|jitter|rate|seq."""
+        try:
+            parts = raw.split('|')
+            cid = int(parts[1])
+            name = parts[2]
+            color = parts[3]
+            slot = int(parts[4])
+            latency = parts[5]
+            jitter = parts[6]
+            rate = parts[7]
+            seq = parts[8]
+            self._update_player_card(cid, name, color, slot, latency, jitter, rate, seq)
+        except Exception:
+            pass
+
+    def _create_player_card(self, cid: int, name: str, color: str, slot: int):
+        """Create a player card widget in the Monitor tab."""
+        if cid in self._player_cards:
+            return
+        # Hide the empty label
+        try:
+            self._monitor_empty_label.pack_forget()
+        except Exception:
+            pass
+
+        card = tk.Frame(self._monitor_cards_frame, bg='#1a1d1f', relief='flat',
+                        highlightbackground=color, highlightthickness=2, padx=16, pady=12)
+        card.pack(fill='x', padx=16, pady=8)
+
+        # Row 1: colored circle + name + slot badge
+        top_row = tk.Frame(card, bg='#1a1d1f')
+        top_row.pack(fill='x')
+
+        # Colored dot
+        dot = tk.Canvas(top_row, width=16, height=16, bg='#1a1d1f', highlightthickness=0)
+        dot.create_oval(2, 2, 14, 14, fill=color, outline=color)
+        dot.pack(side='left', padx=(0, 8))
+
+        name_lbl = tk.Label(top_row, text=name, font=('Segoe UI', 13, 'bold'),
+                            fg=color, bg='#1a1d1f')
+        name_lbl.pack(side='left')
+
+        slot_badge = tk.Label(top_row, text=f'  PLAYER {slot}  ', font=('Segoe UI', 8, 'bold'),
+                              fg='#000000', bg=color, relief='flat')
+        slot_badge.pack(side='right', padx=(8, 0))
+
+        # Row 2: stats
+        stats_row = tk.Frame(card, bg='#1a1d1f')
+        stats_row.pack(fill='x', pady=(8, 0))
+
+        lat_lbl = tk.Label(stats_row, text='Latency: \u2014', font=('Consolas', 10),
+                           fg='#aaaaaa', bg='#1a1d1f')
+        lat_lbl.pack(side='left', padx=(0, 20))
+
+        jit_lbl = tk.Label(stats_row, text='Jitter: \u2014', font=('Consolas', 10),
+                           fg='#aaaaaa', bg='#1a1d1f')
+        jit_lbl.pack(side='left', padx=(0, 20))
+
+        rate_lbl = tk.Label(stats_row, text='Rate: \u2014', font=('Consolas', 10),
+                            fg='#aaaaaa', bg='#1a1d1f')
+        rate_lbl.pack(side='left', padx=(0, 20))
+
+        seq_lbl = tk.Label(stats_row, text='Seq: \u2014', font=('Consolas', 10),
+                           fg='#666666', bg='#1a1d1f')
+        seq_lbl.pack(side='right')
+
+        self._player_cards[cid] = {
+            'frame': card,
+            'name_lbl': name_lbl,
+            'lat_lbl': lat_lbl,
+            'jit_lbl': jit_lbl,
+            'rate_lbl': rate_lbl,
+            'seq_lbl': seq_lbl,
+            'slot_badge': slot_badge,
+            'color': color,
+        }
+
+    def _update_player_card(self, cid: int, name: str, color: str, slot: int,
+                            latency: str, jitter: str, rate: str, seq: str):
+        """Update an existing player card with new stats."""
+        if cid not in self._player_cards:
+            self._create_player_card(cid, name, color, slot)
+        card = self._player_cards.get(cid)
+        if card is None:
+            return
+        try:
+            lat_f = float(latency)
+            # Color-code latency
+            if lat_f < 10:
+                lat_color = '#22c55e'  # green
+            elif lat_f < 30:
+                lat_color = '#f59e0b'  # amber
+            else:
+                lat_color = '#ef4444'  # red
+            card['lat_lbl'].config(text=f'Latency: {latency} ms', fg=lat_color)
+            card['jit_lbl'].config(text=f'Jitter: {jitter} ms')
+            rate_f = float(rate)
+            if rate_f > 0:
+                card['rate_lbl'].config(text=f'Rate: {rate} Hz')
+            card['seq_lbl'].config(text=f'Seq: {seq}')
+        except Exception:
+            pass
+
+    def _remove_player_card(self, cid: int):
+        """Remove a player card from the Monitor tab."""
+        card = self._player_cards.pop(cid, None)
+        if card is not None:
+            try:
+                card['frame'].destroy()
+            except Exception:
+                pass
+        # Show empty label if no players left
+        if not self._player_cards:
+            try:
+                self._monitor_empty_label.pack(expand=True, pady=80)
+            except Exception:
+                pass
+
+    def _log_monitor_event(self, text: str, color: str = '#aaaaaa'):
+        """Append a line to the monitor event log."""
+        try:
+            import time as _t
+            ts = _t.strftime('%H:%M:%S')
+            self._monitor_log.config(state='normal')
+            tag_name = f'c_{color.replace("#", "")}'
+            self._monitor_log.tag_configure(tag_name, foreground=color)
+            self._monitor_log.insert('end', f'[{ts}] {text}\n', tag_name)
+            self._monitor_log.see('end')
+            self._monitor_log.config(state='disabled')
+        except Exception:
+            pass
 
 
 def main():

@@ -71,11 +71,16 @@ class GpController:
         self.telemetry_cb = telemetry_cb
         self.update_rate = 60  # Default update rate in Hz
         self.controller_profile = 'generic'  # Default controller profile
+        self.joystick_index = 0  # Default joystick index
         # Network parameters
         self.client_target_ip = '127.0.0.1'  # Default client target IP
         self.client_port = 7777  # Default client port
         self.host_bind_ip = ''  # Default host bind IP (all interfaces)
         self.host_port = 7777  # Default host port
+        # Multi-gamepad mode
+        self.multi_gamepad = False
+        # Reference to the live host for querying connected clients
+        self._live_host = None
         HostCls, ClientCls, error = _try_import_real()
         self._host: BaseRunner
         self._client: BaseRunner
@@ -92,13 +97,16 @@ class GpController:
                             bind_ip=inner_self.parent.host_bind_ip,
                             port=inner_self.parent.host_port,
                             status_cb=inner_self.status_cb,
-                            telemetry_cb=inner_self.telemetry_cb
+                            telemetry_cb=inner_self.telemetry_cb,
+                            multi_gamepad=inner_self.parent.multi_gamepad
                         )
-                        inner_self.status_cb("✓ Host initialized successfully")
+                        inner_self.parent._live_host = h
+                        inner_self.status_cb("\u2713 Host initialized successfully")
                         h.start()
                         while not inner_self._stop_event.is_set():
                             time.sleep(0.1)
                         h.stop()
+                        inner_self.parent._live_host = None
                     except PermissionError as e:
                         inner_self.status_cb(f"✗ Permission denied: {e}")
                         inner_self.status_cb("→ Solution: Check system requirements and permissions")
@@ -121,7 +129,8 @@ class GpController:
                             status_cb=inner_self.status_cb,
                             telemetry_cb=inner_self.telemetry_cb,
                             update_rate=inner_self.parent.update_rate,
-                            controller_profile=inner_self.parent.controller_profile
+                            controller_profile=inner_self.parent.controller_profile,
+                            joystick_index=inner_self.parent.joystick_index
                         )
                         inner_self.status_cb("✓ Client initialized successfully")
                         c.start()
@@ -174,3 +183,17 @@ class GpController:
         """Set the host bind IP address and port."""
         self.host_bind_ip = bind_ip
         self.host_port = port
+
+    def set_multi_gamepad(self, enabled: bool):
+        """Enable or disable multi-gamepad mode (up to 4 virtual controllers)."""
+        self.multi_gamepad = enabled
+
+    def set_joystick_index(self, index: int):
+        """Set which physical joystick the client should read from."""
+        self.joystick_index = index
+
+    def get_connected_clients(self) -> list:
+        """Return list of connected clients from the live host (multi-gamepad mode)."""
+        if self._live_host is not None and hasattr(self._live_host, 'get_connected_clients'):
+            return self._live_host.get_connected_clients()
+        return []
