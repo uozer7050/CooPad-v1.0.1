@@ -156,13 +156,13 @@ Both Host and Client tabs show real-time telemetry:
 CooPad includes comprehensive security features to protect against various attacks, especially DoS (Denial of Service):
 
 ### Multi-Layer Protection
-- **Token Bucket Rate Limiting**: Advanced burst protection (120 packets/sec per client, 20 burst capacity)
-- **IP-Based Rate Limiting**: Limits total packets per IP address (200 packets/sec)
+- **Token Bucket Rate Limiting**: Advanced burst protection
+- **IP-Based Rate Limiting**: Limits total packets per IP address
 - **Connection Limits**: Maximum 3 simultaneous clients per IP address
 - **Automatic Blocking**: Auto-blocks clients after 5 security violations
 
 ### Attack Prevention
-- **Timestamp Validation**: Prevents replay attacks (5-second max packet age)
+- **Timestamp Validation**: Prevents replay attacks
 - **Packet Validation**: Size and content validation for all packets
 - **Duplicate Detection**: Sequence number tracking prevents packet replay
 - **Input Sanitization**: Gamepad values clamped to valid ranges
@@ -173,7 +173,6 @@ CooPad includes comprehensive security features to protect against various attac
 - **IP Whitelist Support**: Optional whitelist for trusted sources
 - **Real-time Statistics**: Monitor active clients, blocked IPs, and violations
 
-For detailed security documentation, see [SECURITY.md](SECURITY.md)
 
 ### Security Best Practices
 1. **Use VPN** for remote connections (ZeroTier, Tailscale, WireGuard)
